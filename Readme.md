@@ -80,7 +80,7 @@ client.jobs.create(job)
 
 ````
 
-Not to mention the endless options to add some Kotlin code inside, for example create Group with 10 tasks
+Not to mention the endless options to add some Kotlin code inside, for example create a Group with 10 tasks
 
 ````Kotlin
 val job = JobBuilder().apply {
@@ -122,7 +122,7 @@ client.jobs.create{
         }
 ```
 
-The nomad client itself can be configured using kotlin DSL
+The nomad client can be configured using kotlin DSL
 
 ```Kotlin
     val client = NomadClient {
