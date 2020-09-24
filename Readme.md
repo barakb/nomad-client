@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/barakb/nomad-client.svg?branch=master)](https://travis-ci.org/barakb/nomad-client)
 ### Yet another Nomad client for the JVM
 I had 3 goals in mind when starting this work.
 
@@ -79,7 +80,7 @@ client.jobs.create(job)
 
 ````
 
-Not to mention the endless options to add some Kotlin code inside for example create Group with 10 tasks
+Not to mention the endless options to add some Kotlin code inside, for example create Group with 10 tasks
 
 ````Kotlin
 val job = JobBuilder().apply {
