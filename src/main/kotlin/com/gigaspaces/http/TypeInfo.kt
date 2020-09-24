@@ -23,12 +23,6 @@ inline fun <reified T> typeInfo(): TypeInfo {
 internal fun Any.instanceOf(type: KClass<*>): Boolean = type.java.isInstance(this)
 
 
-/**
- * Ktor type information.
- * @param type: source KClass<*>
- * @param reifiedType: type with substituted generics
- * @param kotlinType: kotlin reified type with all generic type parameters.
- */
 data class TypeInfo(
         val type: KClass<*>,
         val reifiedType: Type,

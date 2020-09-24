@@ -16,9 +16,6 @@ import java.io.Closeable
 import java.net.URI
 
 
-//import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
-//HttpAsyncClientBuilder
-//http://httpbin.org/headers
 private val logger = KotlinLogging.logger {}
 
 class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
