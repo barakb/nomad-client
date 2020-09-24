@@ -100,6 +100,7 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
     }
 }
 
+@HttpTagMarker
 open class HttpConfigBuilder {
     private var defaultRequest: RequestBuilder = RequestBuilder()
     private var gson = GsonBuilder()
@@ -129,7 +130,7 @@ open class HttpConfigBuilder {
 @Suppress("ClassName")
 class Config(val builder: HttpAsyncClientBuilder, val defaultRequest: RequestBuilder = RequestBuilder(), val gson: Gson = Gson())
 
-
+@HttpTagMarker
 data class RequestBuilder(var url: String? = null,
                           var body: Any? = null,
                           val headers: MutableSet<Pair<String, String>> = mutableSetOf(),
@@ -138,6 +139,11 @@ data class RequestBuilder(var url: String? = null,
         headers.add(name to value)
     }
 }
+
+// https://proandroiddev.com/writing-dsls-in-kotlin-part-2-cd9dcd0c4715
+// https://kotlinlang.org/docs/reference/type-safe-builders.html
+@DslMarker
+annotation class HttpTagMarker
 
 
 fun main(): Unit = runBlocking {

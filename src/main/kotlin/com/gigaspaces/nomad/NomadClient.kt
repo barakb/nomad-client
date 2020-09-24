@@ -2,6 +2,7 @@ package com.gigaspaces.nomad
 
 import com.gigaspaces.http.HttpClient
 import com.gigaspaces.http.HttpConfigBuilder
+import com.gigaspaces.http.HttpTagMarker
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory
@@ -10,6 +11,7 @@ import org.apache.http.ssl.SSLContexts
 import java.io.Closeable
 
 
+@HttpTagMarker
 class NomadConfigBuilder {
     @Suppress("MemberVisibilityCanBePrivate")
     var httpConfigBuilder = HttpConfigBuilder()
