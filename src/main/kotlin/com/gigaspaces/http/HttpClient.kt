@@ -67,7 +67,7 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
     }
 
     inline fun <reified T> execute(req: HttpRequestBase): suspend (init: RequestBuilder.() -> Unit) -> T = { init ->
-        val request: RequestBuilder = config.defaultRequest.copy().apply(init)
+        val request = config.defaultRequest.copy().apply(init).build()
         prepareHttpUriRequest(request, req)
         val response = httpClient.execute(req)
         extractResponse(response)
@@ -75,18 +75,21 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
 
 
     inline fun <reified T> extractResponse(response: HttpResponse): T {
-        val typeInfo = typeInfo<T>()
-        return when (T::class) {
-            HttpResponse::class -> response as T
-            String::class -> BasicResponseHandler().handleResponse(response) as T
-            else -> BasicResponseHandler().handleResponse(response).reader().use { config.gson.fromJson(it, typeInfo.reifiedType) }
+        try {
+            val typeInfo = typeInfo<T>()
+            return when (T::class) {
+                HttpResponse::class -> response as T
+                String::class -> BasicResponseHandler().handleResponse(response) as T
+                else -> BasicResponseHandler().handleResponse(response).reader().use { config.gson.fromJson(it, typeInfo.reifiedType) }
+            }
+        } catch (e: Exception) {
+            println("got exception response is: $response")
+            throw e
         }
     }
 
-    fun prepareHttpUriRequest(request: RequestBuilder, httpRequest: HttpRequestBase) {
-        request.url?.let {
-            httpRequest.uri = URI.create(it + request.path)
-        } ?: throw IllegalArgumentException("request $request url can not be null")
+    fun prepareHttpUriRequest(request: Request, httpRequest: HttpRequestBase) {
+        httpRequest.uri = URI.create(request.url)
         if (httpRequest is HttpEntityEnclosingRequestBase) {
             request.body?.let {
                 val content = config.gson.toJson(it)
@@ -97,10 +100,11 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
         request.headers.forEach {
             httpRequest.setHeader(it.first, it.second)
         }
+        logger.debug("sending $httpRequest")
     }
 }
 
-@HttpTagMarker
+@DslHttpClient
 open class HttpConfigBuilder {
     private var defaultRequest: RequestBuilder = RequestBuilder()
     private var gson = GsonBuilder()
@@ -130,20 +134,54 @@ open class HttpConfigBuilder {
 @Suppress("ClassName")
 class Config(val builder: HttpAsyncClientBuilder, val defaultRequest: RequestBuilder = RequestBuilder(), val gson: Gson = Gson())
 
-@HttpTagMarker
-data class RequestBuilder(var url: String? = null,
+@DslHttpClient
+data class RequestBuilder(private val headers: MutableSet<Pair<String, String>> = mutableSetOf(),
+                          private val queries: MutableSet<Pair<String, String>> = mutableSetOf(),
+                          var url: String? = null,
                           var body: Any? = null,
-                          val headers: MutableSet<Pair<String, String>> = mutableSetOf(),
                           var path: String = "") {
+
+    @Suppress("unused")
     fun header(name: String, value: String) {
         headers.add(name to value)
     }
+
+    @Suppress("unused")
+    fun param(name: String, value: Any?) {
+        value?.let { queries.add(name to it.toString()) }
+    }
+
+    fun build(): Request {
+        val combined = url?.let { combineUrl(it, path) }
+                ?: throw java.lang.IllegalArgumentException("Bad request, url is not set")
+        val withQueries = appendQueries(combined, queries)
+        return Request(withQueries, body, headers)
+    }
+
+    private fun appendQueries(url: String, queries: Set<Pair<String, String>>): String {
+        return queries.foldIndexed(url, { i, acc, query ->
+            val connector = if (i == 0) "?" else "&"
+            "$acc$connector${query.first}=${query.second}"
+        })
+    }
+
+    private fun combineUrl(url: String, path: String): String {
+        if (path.isEmpty()) return url
+        return if (url.endsWith("/") || path.endsWith("/")) {
+            "$url$path"
+        } else {
+            "$url/$path"
+        }
+    }
 }
+
+data class Request(val url: String, var body: Any? = null, val headers: Set<Pair<String, String>>)
+
 
 // https://proandroiddev.com/writing-dsls-in-kotlin-part-2-cd9dcd0c4715
 // https://kotlinlang.org/docs/reference/type-safe-builders.html
 @DslMarker
-annotation class HttpTagMarker
+annotation class DslHttpClient
 
 
 fun main(): Unit = runBlocking {
@@ -151,6 +189,7 @@ fun main(): Unit = runBlocking {
         defaultRequest {
             url = "http://httpbin.org/"
             header("name", "value")
+            param("v", "f")
         }
     }.use { client ->
         val headers = client.get<JsonObject> {

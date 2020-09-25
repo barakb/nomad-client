@@ -122,15 +122,12 @@ client.jobs.create{
         }
 ```
 
-The nomad client can be configured using kotlin DSL
+Nomad client can be configured using kotlin DSL
 
 ```Kotlin
     val client = NomadClient {
-        httpConfig {
-            defaultRequest {
-                url = "http://127.0.0.1:4646/v1/"
-            }
-        }
-        nomadToken("my-token")
+        address = "http://127.0.0.1:4646"
+        authToken = "my-fake-token"
     }
 ```   
+https address can be used as well.

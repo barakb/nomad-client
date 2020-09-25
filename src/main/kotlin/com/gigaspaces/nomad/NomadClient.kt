@@ -2,36 +2,19 @@ package com.gigaspaces.nomad
 
 import com.gigaspaces.http.HttpClient
 import com.gigaspaces.http.HttpConfigBuilder
-import com.gigaspaces.http.HttpTagMarker
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory
-import org.apache.http.conn.ssl.TrustStrategy
-import org.apache.http.ssl.SSLContexts
+import org.apache.http.conn.ssl.NoopHostnameVerifier
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy
+import org.apache.http.ssl.SSLContextBuilder
 import java.io.Closeable
 
-
-@HttpTagMarker
-class NomadConfigBuilder {
-    @Suppress("MemberVisibilityCanBePrivate")
-    var httpConfigBuilder = HttpConfigBuilder()
-
-    @Suppress("unused")
-    fun nomadToken(token: String) {
-        httpConfigBuilder.defaultRequest { header("X-Nomad-Token", token) }
-    }
-
-    @Suppress("unused")
-    fun httpConfig(init: HttpConfigBuilder.() -> Unit) {
-        httpConfigBuilder.apply(init)
-    }
-}
 
 private val logger = KotlinLogging.logger {}
 
 class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
-    private val configBuilder = NomadConfigBuilder().apply(init)
-    private val httpClient = HttpClient(configBuilder.httpConfigBuilder)
+    private val config = NomadConfigBuilder().apply(init).build()
+    private val httpClient = createHttpClient(config)
 
     @Suppress("unused")
     val jobs = Jobs(httpClient)
@@ -45,157 +28,194 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     override fun close() {
         httpClient.close()
     }
-}
+
+    private fun createHttpClient(config: NomadConfig): HttpClient {
+        val httpClientBuilder = HttpConfigBuilder()
+                .apply {
+                    defaultRequest {
+                        url = if (config.address.endsWith("/")) "${config.address}v1/" else "${config.address}/v1/"
+                        config.authToken?.let { header("X-Nomad-Token", it) }
+                        param("region", config.region)
+                    }
+                }.apply {
+                    client {
+                        if (config.address.toLowerCase().startsWith("https:")) {
+                            setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                            setSSLContext(SSLContextBuilder().loadTrustMaterial(TrustSelfSignedStrategy.INSTANCE).build())
+                        }
+                    }
+                }
+        return HttpClient(httpClientBuilder)
+    }
 
 
-class Nodes(private val client: HttpClient) {
-    @Suppress("unused")
-    suspend fun list(prefix: String? = null): List<Node> {
-        val queryParam = prefix?.let { "?prefix=$it" } ?: ""
-        return client.get {
-            path = "nodes$queryParam"
+    class Nodes(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun list(prefix: String? = null): List<Node> {
+            return client.get {
+                path = "nodes"
+                param("prefix", prefix)
+            }
+        }
+    }
+
+    class Allocations(private val client: HttpClient) {
+
+        @Suppress("unused")
+        suspend fun list(prefix: String? = null): List<Allocation> {
+            return client.get {
+                path = "allocations"
+                param("prefix", prefix)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun read(id: String): Allocation {
+            return client.get {
+                path = "allocation/$id"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun stop(id: String): EvaluationResponse {
+            return client.post {
+                path = "allocation/$id/stop"
+            }
+        }
+    }
+
+    class Jobs(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun create(init: JobBuilder.() -> Unit): EvaluationResponse {
+            return create(JobBuilder().apply(init).build())
+        }
+
+        @Suppress("unused")
+        suspend fun create(job: Job): EvaluationResponse {
+            return client.post {
+                path = "jobs"
+                body = hashMapOf(("Job" to job))
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun stop(jobId: String, purge: Boolean = false): EvaluationResponse {
+            return client.delete {
+                path = "job/$jobId"
+                param("purge", purge)
+
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun update(job: Job, enforceIndex: Boolean = false, jobModifyIndex: Int = 0, policyOverride: Boolean = false): EvaluationResponse {
+            return client.post {
+                path = "job/${job.id}"
+                body = hashMapOf(("Job" to job),
+                        ("EnforceIndex" to enforceIndex),
+                        ("JobModifyIndex" to jobModifyIndex),
+                        ("PolicyOverride" to policyOverride))
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun list(prefix: String? = null): List<JobDesc> {
+            return client.get {
+                path = "jobs"
+                param("prefix", prefix)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun read(jobId: String): Job {
+            return client.get {
+                path = "job/$jobId"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun allocations(jobId: String, all: Boolean = false): List<Allocation> {
+            return client.get {
+                path = "job/$jobId/allocations"
+                param("all", all)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun deployments(jobId: String, all: Boolean = false): List<Deployment> {
+            return client.get {
+                path = "job/$jobId/deployments"
+                param("all", all)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun deployment(jobId: String): Deployment {
+            return client.get {
+                path = "job/$jobId/deployment"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun summary(jobId: String): JobSummary {
+            return client.get {
+                path = "job/$jobId/summary"
+            }
         }
     }
 }
 
-class Allocations(private val client: HttpClient) {
+@DslMarker
+annotation class DslNomadClient
 
-    @Suppress("unused")
-    suspend fun list(prefix: String? = null): List<Allocation> {
-        val queryParam = prefix?.let { "?prefix=$it" } ?: ""
-        return client.get {
-            path = "allocations$queryParam"
-        }
-    }
+@DslNomadClient
+class NomadConfigBuilder {
+    var address: String? = null
+    var region: String? = null
+    var authToken: String? = null
 
-    @Suppress("unused")
-    suspend fun read(id: String): Allocation {
-        return client.get {
-            path = "allocation/$id"
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun stop(id: String): EvaluationResponse {
-        return client.post {
-            path = "allocation/$id/stop"
-        }
+    fun build(): NomadConfig {
+        val address = address ?: throw IllegalArgumentException("address must be set")
+        return NomadConfig(address, region, authToken)
     }
 }
 
-class Jobs(private val client: HttpClient) {
-    @Suppress("unused")
-    suspend fun create(init: JobBuilder.() -> Unit): EvaluationResponse {
-        return create(JobBuilder().apply(init).build())
-    }
+data class NomadConfig(
+        var address: String,
+        val region: String?,
+        val authToken: String? = null,
+)
 
-    @Suppress("unused")
-    suspend fun create(job: Job): EvaluationResponse {
-        return client.post {
-            path = "jobs"
-            body = hashMapOf(("Job" to job))
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun stop(jobId: String, purge: Boolean = false): EvaluationResponse {
-        return client.delete {
-            path = "job/$jobId/?purge=$purge"
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun update(job: Job, enforceIndex: Boolean = false, jobModifyIndex: Int = 0, policyOverride: Boolean = false): EvaluationResponse {
-        return client.post {
-            path = "job/${job.id}"
-            body = hashMapOf(("Job" to job),
-                    ("EnforceIndex" to enforceIndex),
-                    ("JobModifyIndex" to jobModifyIndex),
-                    ("PolicyOverride" to policyOverride))
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun list(): List<JobDesc> {
-        return client.get {
-            path = "jobs"
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun read(jobId: String): Job {
-        return client.get {
-            path = "job/$jobId"
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun allocations(jobId: String, all: Boolean = false): List<Allocation> {
-        return client.get {
-            path = "job/$jobId/allocations?all=${all}"
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun deployments(jobId: String, all: Boolean = false): List<Deployment> {
-        return client.get {
-            path = "job/$jobId/deployments?all=${all}"
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun deployment(jobId: String): Deployment {
-        return client.get {
-            path = "job/$jobId/deployment"
-        }
-    }
-
-    @Suppress("unused")
-    suspend fun summary(jobId: String): JobSummary {
-        return client.get {
-            path = "job/$jobId/summary"
-        }
-    }
-}
 
 val job = JobBuilder().apply {
     id = "foo"
     name = "foo"
     group {
         name = "bar"
-        repeat(10) {
-            task {
-                raw_exec {
-                    command = "/home/barak/dev/kotlin/nomad-client/job.sh"
-                }
-                name = "myTask$it"
+        task {
+            raw_exec {
+                command = "/home/barak/dev/kotlin/nomad-client/job.sh"
             }
+            name = "myTask"
         }
     }
 }.build()
 
+//@Suppress("DEPRECATION")
 
 //http://127.0.0.1:4646/ui/clients
 fun main(): Unit = runBlocking {
+
     NomadClient {
-        httpConfig {
-            client {
-                @Suppress("DEPRECATION")
-                setSSLHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
-                        .setSSLContext(SSLContexts.custom().loadTrustMaterial(null, TrustStrategy { _, _ -> true }).build())
-            }
-            defaultRequest {
-                url = "http://127.0.0.1:4646/v1/"
-            }
-        }
-//      nomadToken("fake-token")
+        address = "http://127.0.0.1:4646"
+        authToken = "my-fake-token"
     }.use { client ->
         val registrationResponse = client.jobs.create(job)
         logger.info("registrationResponse is $registrationResponse")
         val jobs = client.jobs.list()
         logger.info("jobs are $jobs")
 //        logger.info("read(foo) = ${client.jobs.read("foo")}")
-//        logger.info("allocations(foo) = ${client.jobs.allocations("foo")}")
+        logger.info("allocations(foo) = ${client.jobs.allocations("foo")}")
 //        logger.info("deployments(foo) = ${client.jobs.deployments("foo")}")
 //        logger.info("deployment(foo) = ${client.jobs.deployment("foo")}")
 //        logger.info("summary(foo) = ${client.jobs.summary("foo")}")
