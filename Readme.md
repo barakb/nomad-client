@@ -56,10 +56,28 @@ com.gigaspaces:nomad-client:jar:1.0-SNAPSHOT
 [INFO] +- com.google.code.gson:gson:jar:2.8.6:compile
 [INFO] +- org.slf4j:slf4j-api:jar:1.7.30:compile
 
-````
 
-In addition, there is a builder for Nomad job that mimic HCL, 
-that makes the creation of a job from Kotlin code extremely readable.
+````
+#### Usage:
+To create a Nomad client Kotlin DSC can be used.
+```Kotlin
+    val client = NomadClient {
+        address = "http://127.0.0.1:4646"
+        authToken = "my-fake-token"
+    }
+```   
+https address can be used as well.
+
+The client has public getter for each sub api (jobs, allocations etc)
+
+For example this is how a job is submitted
+
+```Kotlin
+client.jobs.create(job)
+```   
+ 
+A job can be created directly using the data objects (same as in Java) 
+or using the JobBuilder that give a nicer Kotlin DCL that mimic HCL 
 
 ````Kotlin
 val job = JobBuilder().apply {
@@ -80,7 +98,8 @@ client.jobs.create(job)
 
 ````
 
-Not to mention the endless options to add some Kotlin code inside, for example create a Group with 10 tasks
+Of course, you can use arbitrary Kotlin code in the builder. 
+For example, this is how you can create a Group with 10 tasks
 
 ````Kotlin
 val job = JobBuilder().apply {
@@ -103,9 +122,7 @@ client.jobs.create(job)
 
 ````
 
-
-Of course, it can combine with the create function
-
+You can create the Job while sending the request to Nomad.
 ```Kotlin
 client.jobs.create{
             id = "foo"
@@ -122,12 +139,5 @@ client.jobs.create{
         }
 ```
 
-Nomad client can be configured using kotlin DSL
 
-```Kotlin
-    val client = NomadClient {
-        address = "http://127.0.0.1:4646"
-        authToken = "my-fake-token"
-    }
-```   
-https address can be used as well.
+
