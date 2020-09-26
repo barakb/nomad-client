@@ -6,23 +6,18 @@ import java.util.*
 
 
 // https://stackoverflow.com/questions/44117970/kotlin-data-class-from-json-using-gson
-data class EvaluationResponse(
-        @SerializedName("EvalCreateIndex") val createIndex: BigInteger?,
-        @SerializedName("EvalID") val id: String,
-        @SerializedName("Index") val index: BigInteger,
-        @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger?,
-        @SerializedName("KnownLeader") val knownLeader: Boolean?,
-        @SerializedName("LastContact") val lastContact: BigInteger?,
-        @SerializedName("Warnings") val warnings: String?
-)
+
+@DslMarker
+annotation class JobDCL
 
 
+@JobDCL
 class JobBuilder {
     var name: String? = null
     var id: String? = null
 
     private var datacenters: MutableList<String> = mutableListOf("dc1")
-    private var groups: MutableList<Group> = mutableListOf()
+    private var groups: MutableList<TaskGroup> = mutableListOf()
 
     @Suppress("unused")
     fun datacenter(name: String) {
@@ -44,29 +39,167 @@ class JobBuilder {
 data class Job(
         @SerializedName("Name") var name: String,
         @SerializedName("ID") var id: String,
-        @SerializedName("Datacenters") var datacenters: List<String> = listOf(),
-        @SerializedName("TaskGroups") var groups: List<Group> = listOf(),
+        @SerializedName("Datacenters") var datacenters: List<String>,
+        @SerializedName("TaskGroups") val taskGroups: List<TaskGroup>,
+        @SerializedName("Stop") val stop: Boolean? = null,
+        @SerializedName("Region") val region: String? = null,
+        @SerializedName("Namespace") val namespace: String? = null,
+        @SerializedName("ParentID") val parentId: String? = null,
+        @SerializedName("Type") val type: String? = null,
+        @SerializedName("Priority") val priority: Int? = null,
+        @SerializedName("AllAtOnce") val allAtOnce: Boolean? = null,
+        @SerializedName("Constraints") val constraints: List<Constraint>? = null,
+        @SerializedName("Update") val update: UpdateStrategy? = null,
+        @SerializedName("Periodic") val periodic: PeriodicConfig? = null,
+        @SerializedName("ParameterizedJob") val parameterizedJob: ParameterizedJobConfig? = null,
+        @SerializedName("Dispatched") val dispatched: Boolean = false,
+        @Suppress("ArrayInDataClass") @SerializedName("Payload") val payload: ByteArray? = null,
+        @SerializedName("Reschedule") val reschedule: ReschedulePolicy? = null,
+        @SerializedName("Migrate") val migrate: MigrateStrategy? = null,
+        @SerializedName("Meta") val meta: Map<String, String>? = null,
+        @SerializedName("VaultToken") val vaultToken: String? = null,
+        @SerializedName("Status") val status: String? = null,
+        @SerializedName("StatusDescription") val statusDescription: String? = null,
+        @SerializedName("Stable") val stable: Boolean? = null,
+        @SerializedName("Version") val version: BigInteger? = null,
+        @SerializedName("SubmitTime") val submitTime: Long? = null,
+        @SerializedName("CreateIndex") val createIndex: BigInteger? = null,
+        @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null,
+        @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger? = null,
 )
 
+data class MigrateStrategy(
+        @SerializedName("MaxParallel") val maxParallel: Int? = null,
+        @SerializedName("HealthCheck") val healthCheck: String? = null,
+        @SerializedName("MinHealthyTime") val minHealthyTime: Long? = null,
+        @SerializedName("HealthyDeadline") val healthyDeadline: Long? = null
+
+)
+
+data class ReschedulePolicy(
+        @SerializedName("Attempts") val attempts: Int? = null,
+        @SerializedName("Interval") val interval: Long? = null,
+        @SerializedName("Delay") val delay: Long? = null,
+        @SerializedName("DelayFunction") val delayFunction: String? = null,
+        @SerializedName("MaxDelay") val maxDelay: Long? = null,
+        @SerializedName("Unlimited") val unlimited: Boolean? = null
+)
+
+
+data class ParameterizedJobConfig(
+        @SerializedName("Payload") val payload: String? = null,
+        @SerializedName("MetaRequired") val metaRequired: List<String>? = null,
+        @SerializedName("MetaOptional") val metaOptional: List<String>? = null
+)
+
+data class PeriodicConfig(
+        @SerializedName("Enabled") val enabled: Boolean? = null,
+        @SerializedName("Spec") val spec: String? = null,
+        @SerializedName("SpecType") val specType: String? = null,
+        @SerializedName("ProhibitOverlap") val prohibitOverlap: Boolean? = null,
+        @SerializedName("TimeZone") val timeZone: String? = null,
+)
+
+data class Constraint(
+        @SerializedName("LTarget") var lTarget: String,
+        @SerializedName("RTarget") val rTarget: String,
+        @SerializedName("Operand") val operand: String
+)
+
+data class UpdateStrategy(
+        @SerializedName("Stagger") val stagger: Long? = null,
+        @SerializedName("MaxParallel") val maxParallel: Int? = null,
+        @SerializedName("HealthCheck") val healthCheck: String? = null,
+        @SerializedName("MinHealthyTime") val minHealthyTime: Long? = null,
+        @SerializedName("HealthyDeadline") val healthyDeadline: Long? = null,
+        @SerializedName("ProgressDeadline") val progressDeadline: Long? = null,
+        @SerializedName("AutoRevert") val autoRevert: Boolean? = null,
+        @SerializedName("Canary") val canary: Int? = null,
+
+        )
+
+@JobDCL
 class GroupBuilder {
     private val tasks: MutableList<Task> = mutableListOf()
+    private var restartPolicy: RestartPolicy? = null
+    private var reschedulePolicy: ReschedulePolicy? = null
     var name: String? = null
 
     fun task(init: TaskBuilder.() -> Unit) {
         tasks.add(TaskBuilder().apply(init).build())
     }
 
-    internal fun build(): Group {
+    @Suppress("unused")
+    fun restart(init: RestartPolicyBuilder.() -> Unit) {
+        restartPolicy = RestartPolicyBuilder().apply(init).build()
+    }
+
+    @Suppress("unused")
+    fun reschedule(init: ReschedulePolicyBuilder.() -> Unit) {
+        reschedulePolicy = ReschedulePolicyBuilder().apply(init).build()
+    }
+
+    internal fun build(): TaskGroup {
         val name = this.name ?: throw IllegalArgumentException("group command is missing $this")
-        return Group(name, tasks)
+        return TaskGroup(name = name, tasks = tasks, restartPolicy = restartPolicy)
     }
 }
 
-data class Group(
+data class TaskGroup(
         @SerializedName("Name") val name: String,
         @SerializedName("Tasks") val tasks: List<Task> = listOf(),
+        @SerializedName("Count") val count: Int? = null,
+        @SerializedName("Constraints") val constraints: List<Constraint>? = null,
+        @SerializedName("RestartPolicy") val restartPolicy: RestartPolicy? = null,
+        @SerializedName("ReschedulePolicy") val reschedulePolicy: ReschedulePolicy? = null,
+        @SerializedName("EphemeralDisk") val ephemeralDisk: EphemeralDisk? = null,
+        @SerializedName("Update") val update: UpdateStrategy? = null,
+        @SerializedName("Migrate") val migrate: MigrateStrategy? = null,
+        @SerializedName("Meta") val meta: Map<String, String>? = null,
 )
 
+@Suppress("MemberVisibilityCanBePrivate")
+@JobDCL
+class RestartPolicyBuilder {
+    var interval: Long? = null
+    var attempts: Int? = null
+    var delay: Long? = null
+    var mode: String? = null
+
+    fun build(): RestartPolicy {
+        return RestartPolicy(interval, attempts, delay, mode)
+    }
+}
+
+@Suppress("MemberVisibilityCanBePrivate")
+@JobDCL
+class ReschedulePolicyBuilder {
+    var attempts: Int? = null
+    val interval: Long? = null
+    var delay: Long? = null
+    val delayFunction: String? = null
+    val maxDelay: Long? = null
+    val unlimited: Boolean? = null
+
+    fun build(): ReschedulePolicy {
+        return ReschedulePolicy(attempts, interval, delay, delayFunction, maxDelay, unlimited)
+    }
+}
+
+data class RestartPolicy(
+        @SerializedName("Interval") val interval: Long? = null,
+        @SerializedName("Attempts") val attempts: Int? = null,
+        @SerializedName("Delay") val delay: Long? = null,
+        @SerializedName("Mode") val mode: String? = null
+)
+
+data class EphemeralDisk(
+        @SerializedName("Sticky") val sticky: Boolean? = null,
+        @SerializedName("Migrate") val migrate: Boolean? = null,
+        @SerializedName("SizeMB") val sizeMb: Int? = null
+)
+
+@JobDCL
 class TaskBuilder {
     var name: String? = null
     private var driver: String? = null
@@ -76,9 +209,14 @@ class TaskBuilder {
     @Suppress("unused", "FunctionName")
     fun raw_exec(init: ConfigRawExecBuilder.() -> Unit) {
         config = ConfigRawExecBuilder().apply(init).build()
-        if (config != ConfigRawExec()) {
-            driver = "raw_exec"
-        }
+        driver = "raw_exec"
+    }
+
+    @Suppress("unused", "FunctionName")
+    fun java_exec(init: ConfigJavaExecBuilder.() -> Unit) {
+        config = ConfigJavaExecBuilder().apply(init).build()
+        driver = "raw_exec"
+
     }
 
     @Suppress("unused")
@@ -90,18 +228,112 @@ class TaskBuilder {
         val name = this.name ?: throw IllegalArgumentException("task name is missing $this")
         val driver = this.driver ?: throw IllegalArgumentException("task driver is missing $this")
         val config = this.config ?: throw IllegalArgumentException("task config is missing $this")
-        return Task(name, driver, config, resources)
+        return Task(name = name, driver = driver, config = config, resources = resources)
     }
-
 }
 
 data class Task(
         @SerializedName("Name") val name: String,
         @SerializedName("Driver") val driver: String,
-        @SerializedName("Config") val config: Any,
+        @SerializedName("Config") val config: Any? = null,
+        @SerializedName("User") val user: String? = null,
+        @SerializedName("Constraints") val constraints: List<Constraint>? = null,
+        @SerializedName("Env") val env: Map<String, String>? = null,
+        @SerializedName("Services") val services: List<Service>? = null,
         @SerializedName("Resources") val resources: Resources? = null,
+        @SerializedName("Meta") val meta: Map<String, String>? = null,
+        @SerializedName("KillTimeout") val killTimeout: Long? = null,
+        @SerializedName("LogConfig") val logConfig: LogConfig? = null,
+        @SerializedName("Artifacts") val artifacts: List<TaskArtifact>? = null,
+        @SerializedName("Vault") val vault: Vault? = null,
+        @SerializedName("Templates") val templates: List<Template>? = null,
+        @SerializedName("DispatchPayload") val dispatchPayload: DispatchPayloadConfig? = null,
+        @SerializedName("Leader") val leader: Boolean = false,
+        @SerializedName("ShutdownDelay") val shutdownDelay: Long = 0,
+        @SerializedName("KillSignal") val killSignal: String? = null
 )
 
+data class DispatchPayloadConfig(
+        @SerializedName("File") var file: String? = null
+)
+
+data class Vault(
+        @SerializedName("Policies") val policies: List<String>? = null,
+        @SerializedName("Env") val env: Boolean? = null,
+        @SerializedName("ChangeMode") val changeMode: String? = null,
+        @SerializedName("ChangeSignal") val changeSignal: String? = null
+)
+
+
+data class LogConfig(
+        @SerializedName("MaxFiles") val maxFiles: Int? = null,
+        @SerializedName("MaxFileSizeMB") val maxFileSizeMb: Int? = null
+
+)
+
+data class TaskArtifact(
+        @SerializedName("GetterSource") val getterSource: String? = null,
+        @SerializedName("GetterOptions") val getterOptions: Map<String, String>? = null,
+        @SerializedName("GetterMode") val getterMode: String? = null,
+        @Suppress("SpellCheckingInspection") @SerializedName("RelativeDest") val relativeDest: String? = null
+)
+
+data class Template(
+        @SerializedName("SourcePath") val sourcePath: String? = null,
+        @Suppress("SpellCheckingInspection") @SerializedName("DestPath") val destPath: String? = null,
+        @SerializedName("EmbeddedTmpl") val embeddedTmpl: String? = null,
+        @SerializedName("ChangeMode") val changeMode: String? = null,
+        @SerializedName("ChangeSignal") val changeSignal: String? = null,
+        @SerializedName("Splay") val splay: Long? = null,
+        @SerializedName("Perms") val perms: String? = null,
+        @Suppress("SpellCheckingInspection") @SerializedName("LeftDelim") val leftDelim: String? = null,
+        @Suppress("SpellCheckingInspection") @SerializedName("RightDelim") val rightDelim: String? = null,
+        @Suppress("SpellCheckingInspection") @SerializedName("Envvars") val envvars: Boolean? = null,
+        @SerializedName("VaultGrace") val vaultGrace: Long? = null
+)
+
+
+data class Service(
+        @SerializedName("Id") val id: String? = null,
+        @SerializedName("Name") val name: String? = null,
+        @SerializedName("Tags") val tags: List<String>? = null,
+        @SerializedName("CanaryTags") val canaryTags: List<String>? = null,
+        @SerializedName("PortLabel") val portLabel: String? = null,
+        @SerializedName("AddressMode") val addressMode: String? = null,
+        @SerializedName("Checks") val checks: List<ServiceCheck>? = null,
+        @SerializedName("CheckRestart") val checkRestart: CheckRestart? = null
+
+)
+
+data class ServiceCheck(
+        @SerializedName("Id") val id: String? = null,
+        @SerializedName("Name") val name: String? = null,
+        @SerializedName("Type") val type: String? = null,
+        @SerializedName("Command") val command: String? = null,
+        @SerializedName("Args") val args: List<String>? = null,
+        @SerializedName("Path") val path: String? = null,
+        @SerializedName("Protocol") val protocol: String? = null,
+        @SerializedName("PortLabel") val portLabel: String? = null,
+        @SerializedName("AddressMode") val addressMode: String? = null,
+        @SerializedName("Interval") val interval: Long = 0,
+        @SerializedName("Timeout") val timeout: Long = 0,
+        @SerializedName("InitialStatus") val initialStatus: String? = null,
+        @SerializedName("TLSSkipVerify") val tlsSkipVerify: Boolean = false,
+        @SerializedName("Header") val header: Map<String, List<String>>? = null,
+        @SerializedName("Method") val method: String? = null,
+        @SerializedName("CheckRestart") val checkRestart: CheckRestart? = null,
+        @SerializedName("GRPCService") val grpcService: String? = null,
+        @SerializedName("GRPCUseTLS") val grpcUseTls: Boolean = false
+)
+
+data class CheckRestart(
+        @SerializedName("Limit") val limit: Int = 0,
+        @SerializedName("Grace") val grace: Long? = null,
+        @SerializedName("IgnoreWarnings") val ignoreWarnings: Boolean = false
+)
+
+
+@JobDCL
 class ConfigRawExecBuilder {
     @Suppress("MemberVisibilityCanBePrivate")
     var command: String? = null
@@ -120,6 +352,26 @@ data class ConfigRawExec(
         val args: List<String> = listOf(),
 )
 
+@JobDCL
+class ConfigJavaExecBuilder {
+    @Suppress("MemberVisibilityCanBePrivate")
+    var jarPath: String? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    var jvmOptions: List<String> = listOf()
+
+    internal fun build(): ConfigJavaExec {
+        val cmd = jarPath ?: throw IllegalArgumentException("config command is missing $this")
+        return ConfigJavaExec(cmd, jvmOptions)
+    }
+}
+
+data class ConfigJavaExec(
+        @SerializedName("jar_path") val jarPath: String? = null,
+        @SerializedName("jvm_options") val jvmOptions: List<String>? = null,
+)
+
+@JobDCL
 class ResourceBuilder {
     @Suppress("MemberVisibilityCanBePrivate")
     var cpu: Int? = null
@@ -136,8 +388,9 @@ class ResourceBuilder {
     }
 }
 
+@Suppress("unused")
 data class JobDesc(
-        @SerializedName("ID") val id: String? = null,
+        @SerializedName("ID") val id: String,
         @SerializedName("ParentID") val parentId: String? = null,
         @SerializedName("Name") val name: String? = null,
         val datacenters: List<String>? = null,
@@ -149,9 +402,9 @@ data class JobDesc(
         @SerializedName("Stop") val stop: Boolean = false,
         @SerializedName("Status") val status: String? = null,
         @SerializedName("StatusDescription") val statusDescription: String? = null,
-        private val jobSummary: JobSummary? = null,
+        private val jobSummary: JobSummary,
         @SerializedName("CreateIndex") val createIndex: BigInteger? = null,
-        @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null,
+        @SerializedName("ModifyIndex") val modifyIndex: BigInteger,
         @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger? = null,
         @SerializedName("SubmitTime") val submitTime: Long = 0
 )
@@ -159,7 +412,7 @@ data class JobDesc(
 data class JobSummary(
         @SerializedName("JobID") var jobId: String? = null,
         @SerializedName("Namespace") var namespace: String? = null,
-        private val summary: Map<String, TaskGroupSummary>? = null,
+        private val summary: Map<String, TaskGroupSummary>,
         private val children: JobChildrenSummary? = null,
         @SerializedName("CreateIndex") var createIndex: BigInteger? = null,
         @SerializedName("ModifyIndex") var modifyIndex: BigInteger? = null,
@@ -195,7 +448,7 @@ data class Allocation(
         @SerializedName("DesiredDescription") val desiredDescription: String? = null,
         @SerializedName("ClientStatus") val clientStatus: String? = null,
         @SerializedName("ClientDescription") val clientDescription: String? = null,
-        @SerializedName("TaskStates") val taskStates: Map<String, TaskState>? = null,
+        @SerializedName("TaskStates") val taskStates: Map<String, TaskState> = emptyMap(),
         @SerializedName("DeploymentStatus") val deploymentStatus: AllocDeploymentStatus? = null,
         @SerializedName("FollowupEvalID") val followupEvalId: String? = null,
         @SerializedName("RescheduleTracker") val rescheduleTracker: RescheduleTracker? = null,
@@ -270,10 +523,10 @@ data class Deployment(
         @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger? = null,
         @SerializedName("JobSpecModifyIndex") val jobSpecModifyIndex: BigInteger? = null,
         @SerializedName("JobCreateIndex") val jobCreateIndex: BigInteger? = null,
-        @SerializedName("TaskGroups") val taskGroups: Map<String, DeploymentState>? = null,
+        @SerializedName("TaskGroups") val taskGroups: Map<String, DeploymentState> = emptyMap(),
         @SerializedName("Status") val status: String? = null,
         @SerializedName("StatusDescription") val statusDescription: String? = null,
-        @SerializedName("CreateIndex") val createIndex: BigInteger? = null,
+        @SerializedName("CreateIndex") val createIndex: BigInteger,
         @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null
 )
 
@@ -361,4 +614,58 @@ data class DriverInfo(
         @SerializedName("HealthDescription") val healthDescription: String? = null,
         @SerializedName("UpdateTime") val updateTime: Date? = null
 
+)
+
+data class EvaluationResponse(
+        @SerializedName("EvalCreateIndex") val createIndex: BigInteger?,
+        @SerializedName("EvalID") val id: String,
+        @SerializedName("Index") val index: BigInteger,
+        @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger?,
+        @SerializedName("KnownLeader") val knownLeader: Boolean?,
+        @SerializedName("LastContact") val lastContact: BigInteger?,
+        @SerializedName("Warnings") val warnings: String?
+)
+
+data class Evaluation(
+        @SerializedName("ID") val id: String,
+        @SerializedName("Priority") val priority: Int = 0,
+        @SerializedName("Type") val type: String? = null,
+        @SerializedName("TriggeredBy") val triggeredBy: String? = null,
+        @SerializedName("Namespace") val namespace: String? = null,
+        @SerializedName("JobID") val jobId: String? = null,
+        @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger? = null,
+        @SerializedName("NodeID") val nodeId: String? = null,
+        @SerializedName("NodeModifyIndex") val nodeModifyIndex: BigInteger? = null,
+        @SerializedName("DeploymentID") val deploymentId: String? = null,
+        @SerializedName("Status") val status: String? = null,
+        @SerializedName("StatusDescription") val statusDescription: String? = null,
+        @SerializedName("Wait") val wait: Long = 0,
+        @SerializedName("WaitUntil") val waitUntil: Date? = null,
+        @SerializedName("NextEval") val nextEval: String? = null,
+        @SerializedName("PreviousEval") val previousEval: String? = null,
+        @SerializedName("BlockedEval") val blockedEval: String? = null,
+        @Suppress("SpellCheckingInspection") @SerializedName("FailedTGAllocs") val failedTgAllocs: Map<String, AllocationMetric>? = null,
+        @SerializedName("ClassEligibility") val classEligibility: Map<String, Boolean>? = null,
+        @SerializedName("EscapedComputedClass") val escapedComputedClass: Boolean = false,
+        @SerializedName("QuotaLimitReached") val quotaLimitReached: String? = null,
+        @SerializedName("AnnotatePlan") val annotatePlan: Boolean = false,
+        @SerializedName("QueuedAllocations") val queuedAllocations: Map<String, Int>? = null,
+        @SerializedName("SnapshotIndex") val snapshotIndex: BigInteger? = null,
+        @SerializedName("CreateIndex") val createIndex: BigInteger,
+        @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null
+)
+
+data class AllocationMetric(
+        @SerializedName("NodesEvaluated") val nodesEvaluated: Int = 0,
+        @SerializedName("NodesFiltered") val nodesFiltered: Int = 0,
+        @SerializedName("NodesAvailable") val nodesAvailable: Map<String, Int> = emptyMap(),
+        @SerializedName("ClassFiltered") val classFiltered: Map<String, Int> = emptyMap(),
+        @SerializedName("ConstraintFiltered") val constraintFiltered: Map<String, Int> = emptyMap(),
+        @SerializedName("NodesExhausted") val nodesExhausted: Int = 0,
+        @SerializedName("ClassExhausted") val classExhausted: Map<String, Int> = emptyMap(),
+        @SerializedName("DimensionExhausted") val dimensionExhausted: Map<String, Int> = emptyMap(),
+        @SerializedName("QuotaExhausted") val quotaExhausted: List<String> = emptyList(),
+        @SerializedName("Scores") val scores: Map<String, Double>? = null,
+        @SerializedName("AllocationTime") val allocationTime: Long = 0,
+        @SerializedName("CoalescedFailures") val coalescedFailures: Int = 0
 )

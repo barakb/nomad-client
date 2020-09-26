@@ -4,10 +4,11 @@ import kotlinx.coroutines.delay
 import java.io.IOException
 
 
+@Suppress("unused")
 suspend fun <T> retryIO(
-        times: Int,
-        initialDelay: Long,
-        maxDelay: Long,
+        times: Int = 1,
+        initialDelay: Long = 1000,
+        maxDelay: Long = 30_000,
         factor: Double = 2.0,
         block: suspend () -> T): T {
     var currentDelay = initialDelay
@@ -19,10 +20,6 @@ suspend fun <T> retryIO(
         delay(currentDelay)
         currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelay)
     }
-    return block() // last attempt
-}
-
-suspend fun <T> withRetry(retry: Retry, block: suspend () -> T): T {
-    return retryIO(retry.times, retry.initialDelay, retry.maxDelay, 2.0, block)
+    return block()
 }
 

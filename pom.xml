@@ -18,7 +18,7 @@
         <kotlin.version>1.4.1</kotlin.version>
         <maven.test.skip>false</maven.test.skip>
         <kotlin.version>1.4.10</kotlin.version>
-        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+<!--        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>-->
     </properties>
 
     <dependencies>

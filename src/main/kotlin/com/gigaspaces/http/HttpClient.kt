@@ -69,22 +69,17 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
     inline fun <reified T> execute(req: HttpRequestBase): suspend (init: RequestBuilder.() -> Unit) -> T = { init ->
         val request = config.defaultRequest.copy().apply(init).build()
         prepareHttpUriRequest(request, req)
-        val response = withRetry(request.retry) { httpClient.execute(req) }
+        val response = httpClient.execute(req)
         extractResponse(response)
     }
 
 
     inline fun <reified T> extractResponse(response: HttpResponse): T {
-        try {
-            val typeInfo = typeInfo<T>()
-            return when (T::class) {
-                HttpResponse::class -> response as T
-                String::class -> BasicResponseHandler().handleResponse(response) as T
-                else -> BasicResponseHandler().handleResponse(response).reader().use { config.gson.fromJson(it, typeInfo.reifiedType) }
-            }
-        } catch (e: Exception) {
-            println("got exception response is: $response")
-            throw e
+        val typeInfo = typeInfo<T>()
+        return when (T::class) {
+            HttpResponse::class -> response as T
+            String::class -> BasicResponseHandler().handleResponse(response) as T
+            else -> BasicResponseHandler().handleResponse(response).reader().use { config.gson.fromJson(it, typeInfo.reifiedType) }
         }
     }
 
@@ -137,16 +132,26 @@ class HttpConfigBuilder {
 }
 
 
-data class Request(val url: String, var body: Any? = null, val headers: Set<Pair<String, String>>, val retry: Retry)
+data class Request(val url: String, var body: Any? = null, val headers: Set<Pair<String, String>>)
 
 @DslHttpClient
-data class RequestBuilder(private val headers: MutableSet<Pair<String, String>> = mutableSetOf(),
-                          private val queries: MutableSet<Pair<String, String>> = mutableSetOf(),
-                          private var retry: Retry = RetryBuilder().build(),
-                          var url: String? = null,
-                          var body: Any? = null,
-                          var path: String = ""
+class RequestBuilder(private val headers: MutableSet<Pair<String, String>> = mutableSetOf(),
+                     private val queries: MutableSet<Pair<String, String>> = mutableSetOf(),
+                     var url: String? = null,
+                     var body: Any? = null,
+                     var path: String = ""
 ) {
+
+    fun copy(): RequestBuilder {
+        return RequestBuilder(headers.toMutableSet(), queries.toMutableSet(), url, body, path)
+    }
+
+    fun build(): Request {
+        val combined = url?.let { combineUrl(it, path) }
+                ?: throw java.lang.IllegalArgumentException("Bad request, url is not set")
+        val withQueries = appendQueries(combined, queries)
+        return Request(withQueries, body, headers)
+    }
 
     @Suppress("unused")
     fun header(name: String, value: String) {
@@ -158,17 +163,6 @@ data class RequestBuilder(private val headers: MutableSet<Pair<String, String>> 
         value?.let { queries.add(name to it.toString()) }
     }
 
-    @Suppress("unused")
-    fun retry(init: RetryBuilder.() -> Unit) {
-        retry = RetryBuilder().apply(init).build()
-    }
-
-    fun build(): Request {
-        val combined = url?.let { combineUrl(it, path) }
-                ?: throw java.lang.IllegalArgumentException("Bad request, url is not set")
-        val withQueries = appendQueries(combined, queries)
-        return Request(withQueries, body, headers, retry)
-    }
 
     private fun appendQueries(url: String, queries: Set<Pair<String, String>>): String {
         return queries.foldIndexed(url, { i, acc, query ->
@@ -187,19 +181,6 @@ data class RequestBuilder(private val headers: MutableSet<Pair<String, String>> 
     }
 }
 
-data class Retry(val times: Int, val initialDelay: Long, val maxDelay: Long)
-
-@DslHttpClient
-class RetryBuilder {
-    var times: Int = 1
-    var initialDelay: Long = 1000
-    var maxDelay: Long = 30_000
-
-    fun build(): Retry {
-        return Retry(times, initialDelay, maxDelay)
-    }
-}
-
 // https://proandroiddev.com/writing-dsls-in-kotlin-part-2-cd9dcd0c4715
 // https://kotlinlang.org/docs/reference/type-safe-builders.html
 
@@ -210,7 +191,6 @@ fun main(): Unit = runBlocking {
             url = "http://httpbin.org/"
             header("name", "value")
             param("v", "f")
-            retry { times = 1 }
         }
     }.use { client ->
         val headers = client.get<JsonObject> {
