@@ -199,12 +199,14 @@ data class EphemeralDisk(
         @SerializedName("SizeMB") val sizeMb: Int? = null
 )
 
+@Suppress("MemberVisibilityCanBePrivate")
 @JobDCL
 class TaskBuilder {
     var name: String? = null
     private var driver: String? = null
     private var config: Any? = null
     private var resources: Resources? = null
+    private var artifacts: List<TaskArtifact> = listOf()
 
     @Suppress("unused", "FunctionName")
     fun raw_exec(init: ConfigRawExecBuilder.() -> Unit) {
@@ -224,11 +226,16 @@ class TaskBuilder {
         resources = ResourceBuilder().apply(init).build()
     }
 
+    @Suppress("unused")
+    fun artifact(init: ArtifactBuilder.() -> Unit) {
+        artifacts = artifacts + ArtifactBuilder().apply(init).build()
+    }
+
     internal fun build(): Task {
         val name = this.name ?: throw IllegalArgumentException("task name is missing $this")
         val driver = this.driver ?: throw IllegalArgumentException("task driver is missing $this")
         val config = this.config ?: throw IllegalArgumentException("task config is missing $this")
-        return Task(name = name, driver = driver, config = config, resources = resources)
+        return Task(name = name, driver = driver, config = config, resources = resources, artifacts = artifacts)
     }
 }
 
@@ -271,11 +278,44 @@ data class LogConfig(
 
 )
 
+@Suppress("MemberVisibilityCanBePrivate")
+@JobDCL
+class ArtifactBuilder {
+    private var options: Map<String, String>? = null
+    var source: String? = null
+    var destination: String? = null
+    var mode: String? = null
+
+    @Suppress("unused")
+    fun options(init: StringMapBuilder.() -> Unit) {
+        options = StringMapBuilder().apply(init).build()
+    }
+
+    fun build(): TaskArtifact {
+        return TaskArtifact(source, destination, options, mode)
+    }
+}
+
+@Suppress("MemberVisibilityCanBePrivate")
+@JobDCL
+class StringMapBuilder {
+    private var options = mapOf<String, String>()
+
+    @Suppress("unused")
+    fun op(key: String, value: String) {
+        options = options + (key to value)
+    }
+
+    fun build(): Map<String, String> {
+        return options
+    }
+}
+
 data class TaskArtifact(
-        @SerializedName("GetterSource") val getterSource: String? = null,
+        @SerializedName("GetterSource") val source: String? = null,
+        @SerializedName("GetterDestination") val destination: String? = null,
         @SerializedName("GetterOptions") val getterOptions: Map<String, String>? = null,
-        @SerializedName("GetterMode") val getterMode: String? = null,
-        @Suppress("SpellCheckingInspection") @SerializedName("RelativeDest") val relativeDest: String? = null
+        @SerializedName("GetterMode") val mode: String? = null,
 )
 
 data class Template(
