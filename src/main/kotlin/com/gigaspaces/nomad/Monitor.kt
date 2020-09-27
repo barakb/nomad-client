@@ -1,84 +1,64 @@
 package com.gigaspaces.nomad
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
 class Monitor(private var client: NomadClient) {
 
-    private suspend fun ongoingEvaluations(job: Job): List<Evaluation> {
-        return client.jobs.evaluations(job.id, job.modifyIndex).filter { it.status != "complete" }
+
+    private suspend fun getJobEvaluation(job: Job): Evaluation? {
+        val modifyIndex = job.jobModifyIndex!!
+        return client.jobs.evaluations(job.id).filter {
+            modifyIndex == it.jobModifyIndex
+        }.maxByOrNull { it.createIndex }
     }
 
-    private suspend fun getLasDeployment(jobId: String): Deployment? {
-        return client.jobs.deployments(jobId = jobId).maxByOrNull { it.createIndex }
+    private fun Deployment.isHealthy(): Boolean {
+        return status == "successful" && taskGroups.values.all { it.unhealthyAllocs == 0L }
     }
 
-    enum class MonitorResult {
-        Evaluating,
-        Deploying,
-        Unhealthy,
-        Healthy,
-        DeploymentFailed
-    }
-
-    /**
-     * If there is an incomplete evaluation it means that there should be allocation and deployment for this job
-     * so we should wait.
-     * otherwise check last deployment, if it successful check that all the tasks are healthy and we are done.
-     */
-    private suspend fun watchOnce(jobId: String): MonitorResult {
+    suspend fun watchOnce(jobId: String) {
         val job = client.jobs.read(jobId)
-        val ongoingEvaluations = ongoingEvaluations(job)
-        if (ongoingEvaluations.isNotEmpty()) {
-            ongoingEvaluations.forEach {
-                logger.info("Evaluation ${it.id} triggered by ${it.triggeredBy} has status of ${it.status}")
-                it.status
-            }
-            logger.info("There is on going evaluation related to this job, hence the job is not running")
-            val associatedAllocations = ongoingEvaluations.flatMap { client.evaluations.allocations(it.id) }
-            logger.info("This evaluation has ${associatedAllocations.size} allocations")
-            associatedAllocations.forEach {
-                logger.info("allocation ${it.id} related to ${it.evalId} $it")
-            }
-            return MonitorResult.Evaluating
-        }
-
-        val lastDeployment = getLasDeployment(jobId)
-        if (lastDeployment != null) {
-            logger.info("job has a last deployment is ${lastDeployment.id} of status ${lastDeployment.status} [${lastDeployment.statusDescription}]")
-            lastDeployment.taskGroups.forEach { (groupName, deploymentState) ->
-                logger.info("   last deployment group $groupName jobs are [healthy:${deploymentState.healthyAllocs}, unhealthy:${deploymentState.unhealthyAllocs}] }")
-            }
-            when (lastDeployment.status) {
-                "running" -> return MonitorResult.Deploying
-                "cancelled" -> return MonitorResult.Deploying
-                "failed" -> return MonitorResult.DeploymentFailed
-                "successful" -> return if (isHealthy(lastDeployment)) MonitorResult.Healthy else MonitorResult.Unhealthy
-
-            }
-        } else {
-            logger.info("No deployment found for job ${job.id}")
-            return MonitorResult.Deploying
-        }
-        return MonitorResult.Healthy
-    }
-
-    private fun isHealthy(deployment: Deployment): Boolean {
-        return deployment.status == "successful" && deployment.taskGroups.values.all { it.unhealthyAllocs == 0L }
-    }
-
-    suspend fun watch(jobId: String): MonitorResult {
-        while (true) {
-            when (watchOnce(jobId)) {
-                MonitorResult.Healthy -> return MonitorResult.Healthy
-                MonitorResult.DeploymentFailed -> return MonitorResult.DeploymentFailed
-                else -> {
-                    delay(5000)
-                    logger.info("\n\n\n\n")
+        val jobEvaluation = getJobEvaluation(job)
+        if (jobEvaluation != null) {
+            logger.info("found job evaluation status=${jobEvaluation.status} " +
+                    "[${jobEvaluation.statusDescription}] triggeredBy=${jobEvaluation.triggeredBy} deploymentId=${jobEvaluation.deploymentId} ")
+            if (jobEvaluation.deploymentId != null) {
+                val deployment = client.deployments.read(jobEvaluation.deploymentId)
+                if (deployment != null) {
+                    if (deployment.isHealthy()) {
+                        logger.info("Healthy deployment ${deployment.status} [${deployment.statusDescription}]")
+                    } else {
+                        logger.info("un Healthy ${deployment.status} [${deployment.statusDescription}]")
+                    }
+                } else {
+                    logger.info("there is no active deployment for job $jobId")
                 }
             }
         }
+    }
+
+    suspend fun watch(jobId: String): Nothing {
+        while (true) {
+            while (true) {
+                watchOnce(jobId)
+                delay(5000)
+                logger.info("\n\n\n\n")
+
+            }
+        }
+    }
+}
+
+fun main(): Unit = runBlocking {
+    NomadClient {
+        address = "http://127.0.0.1:4646"
+        authToken = "my-fake-token"
+    }.use { client ->
+        val m = Monitor(client)
+        m.watchOnce("my_job_id")
     }
 }

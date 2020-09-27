@@ -30,6 +30,9 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     val evaluations = Evaluations(httpClient)
 
     @Suppress("unused")
+    val deployments = Deployments(httpClient)
+
+    @Suppress("unused")
     val monitor = Monitor(this)
 
     override fun close() {
@@ -62,6 +65,34 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
             return client.get {
                 path = "nodes"
                 param("prefix", prefix)
+            }
+        }
+    }
+
+    class Deployments(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun list(index: BigInteger? = null, prefix: String? = null, wait: String? = null): List<Deployment> {
+            return client.get {
+                path = "deployments"
+                param("index", index)
+                param("prefix", prefix)
+                param("wait", wait)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun read(id: String, index: BigInteger? = null, wait: String? = null): Deployment? {
+            return client.get {
+                path = "deployment/$id"
+                param("index", index)
+                param("wait", wait)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun fail(id: String): EvaluationResponse {
+            return client.post {
+                path = "deployment/fail/$id"
             }
         }
     }
@@ -231,7 +262,7 @@ data class NomadConfig(
 val job = JobBuilder().apply {
     id = "my_job_id"
     name = "my_job"
-    repeat(3) { g ->
+    repeat(4) { g ->
         group {
             name = "my_group_$g"
             repeat(2) {
@@ -264,8 +295,7 @@ fun main(): Unit = runBlocking {
     }.use { client ->
         val registrationResponse = client.jobs.create(job)
         logger.info("registrationResponse is $registrationResponse")
-        val res = client.monitor.watch(job.id)
-        logger.info("monitor returns $res")
+        client.monitor.watch(job.id)
 //        val jobs = client.jobs.list()
 //        logger.info("jobs are $jobs")
 ////        logger.info("read(foo) = ${client.jobs.read("foo")}")

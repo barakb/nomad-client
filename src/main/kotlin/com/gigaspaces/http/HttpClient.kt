@@ -76,6 +76,12 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
 
     inline fun <reified T> extractResponse(response: HttpResponse): T {
         val typeInfo = typeInfo<T>()
+        val status = response.statusLine.statusCode
+        if (status == 404) {
+            if (typeInfo.kotlinType?.isMarkedNullable == true) {
+                return null as T
+            }
+        }
         return when (T::class) {
             HttpResponse::class -> response as T
             String::class -> BasicResponseHandler().handleResponse(response) as T
