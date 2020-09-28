@@ -2,21 +2,21 @@ package com.gigaspaces.http
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
-import org.apache.http.HttpResponse
-import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.concurrent.FutureCallback
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient
+import org.apache.hc.core5.concurrent.FutureCallback
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-suspend fun CloseableHttpAsyncClient.execute(request: HttpUriRequest): HttpResponse {
+suspend fun CloseableHttpAsyncClient.execute(request: SimpleHttpRequest): SimpleHttpResponse {
     return suspendCancellableCoroutine { continuation ->
-        execute(request, object : FutureCallback<HttpResponse> {
+        execute(request, object : FutureCallback<SimpleHttpResponse> {
             override fun cancelled() {
                 continuation.cancel()
             }
 
-            override fun completed(response: HttpResponse) {
+            override fun completed(response: SimpleHttpResponse) {
                 continuation.resume(response)
             }
 

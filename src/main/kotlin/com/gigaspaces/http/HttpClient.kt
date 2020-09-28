@@ -5,13 +5,15 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.apache.http.HttpResponse
-import org.apache.http.client.methods.*
-import org.apache.http.entity.ByteArrayEntity
-import org.apache.http.impl.client.BasicResponseHandler
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient
-import org.apache.http.impl.nio.client.HttpAsyncClientBuilder
-import org.apache.http.impl.nio.client.HttpAsyncClients
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequests
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients
+import org.apache.hc.core5.http.ContentType
+import org.apache.hc.core5.http.HttpResponse
+import org.apache.hc.core5.io.CloseMode
 import java.io.Closeable
 import java.net.URI
 
@@ -29,54 +31,54 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
 
     @Suppress("unused")
     suspend inline fun <reified T> get(noinline init: RequestBuilder.() -> Unit): T {
-        return execute<T>(HttpGet())(init)
+        return execute<T>(RequestType.GET)(init)
     }
 
     @Suppress("unused")
     suspend inline fun <reified T> put(noinline init: RequestBuilder.() -> Unit): T {
-        return execute<T>(HttpPut())(init)
+        return execute<T>(RequestType.PUT)(init)
     }
 
     @Suppress("unused")
     suspend inline fun <reified T> post(noinline init: RequestBuilder.() -> Unit): T {
-        return execute<T>(HttpPost())(init)
+        return execute<T>(RequestType.POST)(init)
     }
 
     @Suppress("unused")
     suspend inline fun <reified T> head(noinline init: RequestBuilder.() -> Unit): T {
-        return execute<T>(HttpHead())(init)
+        return execute<T>(RequestType.HEAD)(init)
     }
 
     @Suppress("unused")
     suspend inline fun <reified T> delete(noinline init: RequestBuilder.() -> Unit): T {
-        return execute<T>(HttpDelete())(init)
+        return execute<T>(RequestType.DELETE)(init)
     }
 
     @Suppress("unused")
     suspend inline fun <reified T> options(noinline init: RequestBuilder.() -> Unit): T {
-        return execute<T>(HttpOptions())(init)
+        return execute<T>(RequestType.OPTIONS)(init)
     }
 
     @Suppress("unused")
     suspend inline fun <reified T> trace(noinline init: RequestBuilder.() -> Unit): T {
-        return execute<T>(HttpTrace())(init)
+        return execute<T>(RequestType.TRACE)(init)
     }
 
     override fun close() {
-        httpClient.close()
+        httpClient.close(CloseMode.GRACEFUL)
     }
 
-    inline fun <reified T> execute(req: HttpRequestBase): suspend (init: RequestBuilder.() -> Unit) -> T = { init ->
-        val request = config.defaultRequest.copy().apply(init).build()
-        prepareHttpUriRequest(request, req)
-        val response = httpClient.execute(req)
+    inline fun <reified T> execute(requestType: RequestType): suspend (init: RequestBuilder.() -> Unit) -> T = { init ->
+        val request = config.defaultRequest.copy().apply(init).build(requestType)
+        val httpRequest = prepareHttpUriRequest(request)
+        val response = httpClient.execute(httpRequest)
         extractResponse(response)
     }
 
 
-    inline fun <reified T> extractResponse(response: HttpResponse): T {
+    inline fun <reified T> extractResponse(response: SimpleHttpResponse): T {
         val typeInfo = typeInfo<T>()
-        val status = response.statusLine.statusCode
+        val status = response.code
         if (status == 404) {
             if (typeInfo.kotlinType?.isMarkedNullable == true) {
                 return null as T
@@ -84,30 +86,41 @@ class HttpClient(configBuilder: HttpConfigBuilder) : Closeable {
         }
         return when (T::class) {
             HttpResponse::class -> response as T
-            String::class -> BasicResponseHandler().handleResponse(response) as T
-            else -> BasicResponseHandler().handleResponse(response).reader().use { config.gson.fromJson(it, typeInfo.reifiedType) }
+            String::class -> response.bodyText as T
+            else -> config.gson.fromJson(response.bodyText, typeInfo.reifiedType)
         }
     }
 
-    fun prepareHttpUriRequest(request: Request, httpRequest: HttpRequestBase) {
+    fun prepareHttpUriRequest(request: Request): SimpleHttpRequest {
+        val httpRequest = httpRequest(request)
         httpRequest.uri = URI.create(request.url)
-        if (httpRequest is HttpEntityEnclosingRequestBase) {
-            request.body?.let {
-                val content = config.gson.toJson(it)
-                logger.debug("${httpRequest.method} ${httpRequest.uri}: body = $content")
-                httpRequest.entity = ByteArrayEntity(content.toByteArray())
-            }
+        request.body?.let {
+            val content = config.gson.toJson(it)
+            logger.debug("${httpRequest.method} ${httpRequest.uri}: body = $content")
+            httpRequest.setBody(content.toByteArray(), ContentType.APPLICATION_JSON)
         }
         request.headers.forEach {
             httpRequest.setHeader(it.first, it.second)
         }
         logger.debug("sending $httpRequest")
+        return httpRequest
+    }
+
+    private fun httpRequest(request: Request): SimpleHttpRequest {
+        return when (request.type) {
+            RequestType.GET -> SimpleHttpRequests.get(request.url)
+            RequestType.PUT -> SimpleHttpRequests.put(request.url)
+            RequestType.POST -> SimpleHttpRequests.post(request.url)
+            RequestType.DELETE -> SimpleHttpRequests.delete(request.url)
+            RequestType.HEAD -> SimpleHttpRequests.head(request.url)
+            RequestType.TRACE -> SimpleHttpRequests.trace(request.url)
+            RequestType.OPTIONS -> SimpleHttpRequests.options(request.url)
+        }
     }
 }
 
 @DslMarker
 annotation class DslHttpClient
-
 class Config(val builder: HttpAsyncClientBuilder, val defaultRequest: RequestBuilder = RequestBuilder(), val gson: Gson = Gson())
 
 @DslHttpClient
@@ -137,8 +150,17 @@ class HttpConfigBuilder {
     }
 }
 
+enum class RequestType {
+    GET,
+    PUT,
+    POST,
+    DELETE,
+    HEAD,
+    TRACE,
+    OPTIONS
+}
 
-data class Request(val url: String, var body: Any? = null, val headers: Set<Pair<String, String>>)
+data class Request(val type: RequestType, val url: String, var body: Any? = null, val headers: Set<Pair<String, String>>)
 
 @DslHttpClient
 class RequestBuilder(private val headers: MutableSet<Pair<String, String>> = mutableSetOf(),
@@ -152,11 +174,11 @@ class RequestBuilder(private val headers: MutableSet<Pair<String, String>> = mut
         return RequestBuilder(headers.toMutableSet(), queries.toMutableSet(), url, body, path)
     }
 
-    fun build(): Request {
+    fun build(type: RequestType): Request {
         val combined = url?.let { combineUrl(it, path) }
                 ?: throw java.lang.IllegalArgumentException("Bad request, url is not set")
         val withQueries = appendQueries(combined, queries)
-        return Request(withQueries, body, headers)
+        return Request(type, withQueries, body, headers)
     }
 
     @Suppress("unused")

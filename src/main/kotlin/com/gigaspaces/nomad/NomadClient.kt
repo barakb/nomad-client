@@ -5,9 +5,20 @@ import com.gigaspaces.http.HttpConfigBuilder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.apache.http.conn.ssl.NoopHostnameVerifier
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy
-import org.apache.http.ssl.SSLContextBuilder
+import org.apache.hc.client5.http.config.RequestConfig
+import org.apache.hc.client5.http.cookie.StandardCookieSpec
+import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier
+import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy
+import org.apache.hc.core5.http.ssl.TLS
+import org.apache.hc.core5.http2.HttpVersionPolicy
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy
+import org.apache.hc.core5.pool.PoolReusePolicy
+import org.apache.hc.core5.ssl.SSLContextBuilder
+import org.apache.hc.core5.ssl.SSLContexts
+import org.apache.hc.core5.util.TimeValue
+import org.apache.hc.core5.util.Timeout
 import java.io.Closeable
 import java.math.BigInteger
 import kotlin.time.Duration
@@ -41,6 +52,18 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     }
 
     private fun createHttpClient(config: NomadConfig): HttpClient {
+        val connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
+                .setTlsStrategy(ClientTlsStrategyBuilder.create()
+                        .setSslContext(SSLContexts.createSystemDefault())
+                        .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+                        .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                        .setSslContext(SSLContextBuilder().loadTrustMaterial(TrustSelfSignedStrategy.INSTANCE).build())
+                        .build())
+                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+                .setConnPoolPolicy(PoolReusePolicy.LIFO)
+                .setConnectionTimeToLive(TimeValue.ofMinutes(1L))
+                .build()
+
         val httpClientBuilder = HttpConfigBuilder()
                 .apply {
                     defaultRequest {
@@ -51,10 +74,13 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
                     }
                 }.apply {
                     client {
-                        if (config.address.toLowerCase().startsWith("https:")) {
-                            setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                            setSSLContext(SSLContextBuilder().loadTrustMaterial(TrustSelfSignedStrategy.INSTANCE).build())
-                        }
+                        setConnectionManager(connectionManager)
+                        setDefaultRequestConfig(RequestConfig.custom()
+                                .setConnectTimeout(Timeout.ofSeconds(5))
+                                .setResponseTimeout(Timeout.ofSeconds(5))
+                                .setCookieSpec(StandardCookieSpec.STRICT)
+                                .build())
+                        setVersionPolicy(HttpVersionPolicy.NEGOTIATE)
                     }
                 }
         return HttpClient(httpClientBuilder)
@@ -189,6 +215,14 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         suspend fun read(jobId: String): Job {
             return client.get {
                 path = "job/$jobId"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun plan(job: Job, diff: Boolean?, policyOverride: Boolean): JobPlanResponse {
+            return client.post {
+                path = "job/${job.id}/plan"
+                body = JobPlanRequest(job, diff, policyOverride)
             }
         }
 

@@ -709,3 +709,76 @@ data class AllocationMetric(
         @SerializedName("AllocationTime") val allocationTime: Long = 0,
         @SerializedName("CoalescedFailures") val coalescedFailures: Int = 0
 )
+
+data class JobPlanRequest(
+        @SerializedName("Job") val job: Job,
+        @SerializedName("Diff") val diff: Boolean?,
+        @SerializedName("PolicyOverride") val policyOverride: Boolean?,
+)
+
+data class JobPlanResponse(
+        @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger,
+        @Suppress("SpellCheckingInspection") @SerializedName("CreatedEvals") val createdEvals: List<Evaluation>,
+        @SerializedName("Diff") val diff: JobDiff,
+        @SerializedName("Annotations") val annotations: PlanAnnotations,
+        @Suppress("SpellCheckingInspection") @SerializedName("FailedTGAllocs") val failedTgAllocs: Map<String, AllocationMetric> = mapOf(),
+        @SerializedName("NextPeriodicLaunch") val nextPeriodicLaunch: Date,
+        @SerializedName("Warnings") val warnings: String
+)
+
+data class JobDiff(
+        @SerializedName("Type") val type: String,
+        @SerializedName("ID") val id: String,
+        @SerializedName("Fields") val fields: List<FieldDiff> = listOf(),
+        @SerializedName("Objects") val objects: List<ObjectDiff> = listOf(),
+        @SerializedName("TaskGroups") val taskGroups: List<TaskGroupDiff> = listOf(),
+)
+
+data class PlanAnnotations(
+        @SerializedName("DesiredTGUpdates")
+        val desiredTgUpdates: Map<String, DesiredUpdates> = mapOf()
+)
+
+data class FieldDiff(
+        @SerializedName("Type") val type: String,
+        @SerializedName("Name") val name: String,
+        @SerializedName("Old") val old: String,
+        @SerializedName("New") val New: String,
+        @SerializedName("Annotations") val annotations: List<String> = listOf()
+)
+
+data class ObjectDiff(
+        @SerializedName("Type") val type: String,
+        @SerializedName("Name") val name: String,
+        @SerializedName("Fields") val fields: List<FieldDiff> = listOf(),
+        @SerializedName("Objects") val objects: List<ObjectDiff> = listOf()
+)
+
+data class TaskGroupDiff(
+        @SerializedName("Type") val type: String,
+        @SerializedName("Name") val name: String,
+        @SerializedName("Fields") val fields: List<FieldDiff> = listOf(),
+        @SerializedName("Objects") val objects: List<ObjectDiff> = listOf(),
+        @SerializedName("Tasks") val tasks: List<TaskDiff> = listOf(),
+        @SerializedName("Updates") val updates: Map<String, BigInteger> = mapOf()
+)
+
+data class DesiredUpdates(
+        @SerializedName("Ignore") val ignore: BigInteger? = null,
+        @SerializedName("Place") val place: BigInteger? = null,
+        @SerializedName("Migrate") val migrate: BigInteger? = null,
+        @SerializedName("Stop") val stop: BigInteger? = null,
+        @SerializedName("InPlaceUpdate") val inPlaceUpdate: BigInteger? = null,
+        @SerializedName("DestructiveUpdate") val destructiveUpdate: BigInteger? = null,
+        @SerializedName("Canary") val canary: BigInteger? = null,
+)
+
+data class TaskDiff(
+        @SerializedName("Type") val type: String,
+        @SerializedName("Name") val name: String,
+        @SerializedName("Fields") val fields: List<FieldDiff> = listOf(),
+        @SerializedName("Objects") val objects: List<ObjectDiff> = listOf(),
+        @SerializedName("Annotations") val annotations: List<String> = listOf()
+)
+
+

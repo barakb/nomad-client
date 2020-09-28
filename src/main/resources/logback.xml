@@ -10,4 +10,6 @@
     </root>
 
     <logger name="com.gigaspaces.http.HttpClient" level="INFO"/>
+    <logger name="org.apache.hc" level="INFO"/>
+
 </configuration>
