@@ -19,7 +19,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     gradlePluginPortal()
@@ -158,7 +158,7 @@ bintray {
         websiteUrl = pomUrl
         vcsUrl = "https://github.com/barakb/nomad-client"
         issueTrackerUrl = pomIssueUrl
-//        githubReleaseNotesFile = githubReadme
+        githubReleaseNotesFile = githubReadme
 
         version.apply {
             name = artifactVersion
