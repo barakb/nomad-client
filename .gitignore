@@ -3,4 +3,6 @@ target
 .idea
 *~
 settings.xml
-keys.txt
+release.txt
+pom.xml.releaseBackup
+release.properties
