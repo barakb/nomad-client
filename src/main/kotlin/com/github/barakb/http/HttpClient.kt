@@ -1,4 +1,4 @@
-package com.gigaspaces.http
+package com.github.barakb.http
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder

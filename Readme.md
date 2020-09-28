@@ -1,14 +1,19 @@
 [![Build Status](https://travis-ci.org/barakb/nomad-client.svg?branch=master)](https://travis-ci.org/barakb/nomad-client)
-### Yet another Nomad client for the JVM
+
+### A Kotlin Nomad client
+
 I had 3 goals in mind when starting this work.
 
 1. Fully async code no blocking threads.
 2. Easy to compose both sequentially and concurrently
 3. Minimum dependencies.
+4. Small
 
 - Choosing the underlining http client to be Apache HttpAsyncClient **satisfy the first and third requirements**.
 - Extending `CloseableHttpAsyncClient.execute` as a suspend function (in the file CloseableHttpAsyncClientExt.kt)
   enable easy composition of the result client sequentially and concurrently, hence **satisfy the second requirement**. 
+
+Only 1512 LOC compared to 27818 in the official Java DSK
      
 Currently, the compiled transitive dependencies are:
 
@@ -27,7 +32,6 @@ INFO]    ch.qos.logback:logback-classic:jar:1.2.3:compile
 [INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:1.4.10:compile
 [INFO]    org.slf4j:slf4j-api:jar:1.7.30:compile
 [INFO]    org.apache.httpcomponents.core5:httpcore5:jar:5.0.1:compile
-[INFO]    ch.qos.logback:logback-core:jar:1.2.3:compile
 [INFO]    io.github.microutils:kotlin-logging:jar:1.11.5:compile
 [INFO]    org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.4.10:compile
 [INFO]    org.jetbrains:annotations:jar:13.0:compile
@@ -42,8 +46,6 @@ Here is the dependency tree:
 [INFO] +- org.jetbrains.kotlin:kotlin-reflect:jar:1.4.10:compile
 [INFO] +- org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:jar:1.3.9:compile
 [INFO] |  \- org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:1.3.9:compile
-[INFO] +- ch.qos.logback:logback-classic:jar:1.2.3:compile
-[INFO] |  \- ch.qos.logback:logback-core:jar:1.2.3:compile
 [INFO] +- io.github.microutils:kotlin-logging:jar:1.11.5:compile
 [INFO] +- org.apache.httpcomponents.client5:httpclient5:jar:5.0.1:compile
 [INFO] |  +- org.apache.httpcomponents.core5:httpcore5:jar:5.0.1:compile
@@ -53,6 +55,17 @@ Here is the dependency tree:
 [INFO] +- org.slf4j:slf4j-api:jar:1.7.30:compile
 
 ````
+
+###To consume this project using maven add the following to your pom.xml
+
+````Xml
+<dependency>
+      <groupId>com.github.barakb</groupId>
+      <artifactId>nomad-client</artifactId>
+      <version>1.0.0</version>
+</dependency>
+````
+
 #### Usage:
 To create a Nomad client Kotlin DSL can be used.
 ```Kotlin

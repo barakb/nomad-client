@@ -1,4 +1,4 @@
-package com.gigaspaces.nomad
+package com.github.barakb.nomad
 
 import com.google.gson.annotations.SerializedName
 import java.math.BigInteger

@@ -9,7 +9,7 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="com.gigaspaces.http.HttpClient" level="INFO"/>
+    <logger name="com.github.barakb.http.HttpClient" level="INFO"/>
     <logger name="org.apache.hc" level="INFO"/>
 
 </configuration>

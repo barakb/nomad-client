@@ -1,4 +1,4 @@
-package com.gigaspaces.http
+package com.github.barakb.http
 
 import java.lang.reflect.ParameterizedType
 import kotlin.reflect.KClass

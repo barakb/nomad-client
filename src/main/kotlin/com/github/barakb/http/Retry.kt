@@ -1,4 +1,4 @@
-package com.gigaspaces.http
+package com.github.barakb.http
 
 import kotlinx.coroutines.delay
 import java.io.IOException
