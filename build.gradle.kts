@@ -90,6 +90,11 @@ val pomLicenseDist = "repo"
 val pomDeveloperId = "barakb"
 val pomDeveloperName = "Barak Bar Orion"
 
+val sourcesJar by tasks.creating(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets.getByName("main").allSource)
+}
+
 publishing {
     publications {
         create<MavenPublication>("nomad-client") {
@@ -97,6 +102,7 @@ publishing {
             artifactId = artifactName
             version = artifactVersion
             from(components["java"])
+
             artifact(sourcesJar)
 
             pom.withXml {
@@ -122,10 +128,6 @@ publishing {
     }
 }
 
-val sourcesJar by tasks.creating(Jar::class) {
-    archiveClassifier.set("sources")
-    from(sourceSets.getByName("main").allSource)
-}
 
 bintray {
     user = project.findProperty("bintrayUser").toString()
