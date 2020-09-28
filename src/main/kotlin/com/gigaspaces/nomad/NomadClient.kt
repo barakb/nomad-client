@@ -2,6 +2,7 @@ package com.gigaspaces.nomad
 
 import com.gigaspaces.http.HttpClient
 import com.gigaspaces.http.HttpConfigBuilder
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.apache.http.conn.ssl.NoopHostnameVerifier
@@ -9,6 +10,9 @@ import org.apache.http.conn.ssl.TrustSelfSignedStrategy
 import org.apache.http.ssl.SSLContextBuilder
 import java.io.Closeable
 import java.math.BigInteger
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.seconds
 
 
 private val logger = KotlinLogging.logger {}
@@ -31,9 +35,6 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
 
     @Suppress("unused")
     val deployments = Deployments(httpClient)
-
-    @Suppress("unused")
-    val monitor = Monitor(this)
 
     override fun close() {
         httpClient.close()
@@ -142,7 +143,7 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         }
     }
 
-    class Jobs(private val client: HttpClient) {
+    inner class Jobs(private val client: HttpClient) {
         @Suppress("unused")
         suspend fun create(init: JobBuilder.() -> Unit): EvaluationResponse {
             return create(JobBuilder().apply(init).build())
@@ -233,6 +234,54 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
                 path = "job/$jobId/summary"
             }
         }
+
+        private fun Deployment.isHealthy(): Boolean {
+            return status == "successful" && taskGroups.values.all { it.unhealthyAllocs == 0L }
+        }
+
+        private suspend fun getLastDeployment(jobId: String, jobModifyIndex: BigInteger): Deployment? {
+            val deployment = deployment(jobId)
+            return if (jobModifyIndex == deployment.jobSpecModifyIndex) deployment else null
+        }
+
+        @Suppress("unused")
+        private suspend fun getLastDeploymentIfHealthy(jobId: String): Deployment? {
+            val job = jobs.read(jobId)
+            val deployment = getLastDeployment(job.id, job.jobModifyIndex!!)
+            if (deployment != null) {
+                if (deployment.isHealthy()) {
+                    logger.debug("job [$jobId] deployment - Healthy ${deployment.id} ${deployment.status} [${deployment.statusDescription}]")
+                    return deployment
+                } else {
+                    val unHealthy = deployment.taskGroups.values.map { it.unhealthyAllocs }.sum()
+                    logger.debug("job [$jobId] deployment - Un-Healthy ${deployment.id} ${deployment.status}:($unHealthy) [${deployment.statusDescription}]")
+                }
+            } else {
+                logger.debug("there is no active deployment for job $jobId")
+            }
+            return null
+        }
+
+        @ExperimentalTime
+        suspend fun getLastDeploymentIfHealthy(jobId: String, wait: Duration = 0.seconds): Deployment? {
+            var remaining = wait.inMilliseconds.toLong()
+            val delay = 5000L
+            while (true) {
+                while (true) {
+                    val deployment = getLastDeploymentIfHealthy(jobId)
+                    if (deployment != null) {
+                        return deployment
+                    }
+                    if (0 < remaining) {
+                        val d = delay.coerceAtMost(remaining)
+                        delay(d)
+                        remaining -= d
+                    } else {
+                        return null
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -259,7 +308,7 @@ data class NomadConfig(
 )
 
 
-val job = JobBuilder().apply {
+val validJob = JobBuilder().apply {
     id = "my_job_id"
     name = "my_job"
     repeat(4) { g ->
@@ -267,47 +316,53 @@ val job = JobBuilder().apply {
             name = "my_group_$g"
             repeat(2) {
                 task {
-                    raw_exec {
-                        command = if (g != 0) "/home/barak/dev/kotlin/nomad-client/job.sh" else "/not_found.sh"
-//                        command = "/home/barak/dev/kotlin/nomad-client/job.sh"
-                    }
                     name = "myTask_${g}_$it"
+
+                    raw_exec {
+                        command = "/home/barak/dev/kotlin/nomad-client/job.sh"
+                    }
                 }
             }
-//            restart {
-//                attempts = 1
-//                delay = 0
-//                interval = 5_000_000_000
-//                mode = "fail"
-//            }
         }
     }
 }.build()
 
-//@Suppress("DEPRECATION")
+val invalidJob = JobBuilder().apply {
+    id = "my_job_id"
+    name = "my_job"
+    repeat(4) { g ->
+        group {
+            name = "my_group_$g"
+            repeat(2) {
+                task {
+                    name = "myTask_${g}_$it"
+
+                    raw_exec {
+                        command = if (g != 0) "/home/barak/dev/kotlin/nomad-client/job.sh" else "/not_found.sh"
+                    }
+                }
+            }
+        }
+    }
+}.build()
+
 
 //http://127.0.0.1:4646/ui/clients
+@ExperimentalTime
 fun main(): Unit = runBlocking {
-
     NomadClient {
         address = "http://127.0.0.1:4646"
         authToken = "my-fake-token"
     }.use { client ->
-        val registrationResponse = client.jobs.create(job)
-        logger.info("registrationResponse is $registrationResponse")
-        client.monitor.watch(job.id)
-//        val jobs = client.jobs.list()
-//        logger.info("jobs are $jobs")
-////        logger.info("read(foo) = ${client.jobs.read("foo")}")
-//        logger.info("allocations(foo) = ${client.jobs.allocations(jobId = "foo", index = registrationResponse.index)}")
-//        logger.info("deployments(foo) = ${client.jobs.deployments("foo")}")
-//        logger.info("deployment(foo) = ${client.jobs.deployment("foo")}")
-//        logger.info("summary(foo) = ${client.jobs.summary("foo")}")
-//        val allocations = client.allocations.list()
-//        allocations.forEach {
-//            it.id?.let { id -> logger.info("client.allocation.read($id) = ${client.allocations.read(id)}") }
-//        }
-//        val nodes= client.nodes.list()
-//        logger.info("nodes are $nodes")
+        client.jobs.create(invalidJob)
+        val deployment = client.jobs.getLastDeploymentIfHealthy(invalidJob.id, 30.seconds)
+        if (deployment == null) {
+            logger.info("reverting to a known valid job setup")
+            client.jobs.create(validJob)
+            val revertTo = client.jobs.getLastDeploymentIfHealthy(validJob.id, 30.seconds)
+            logger.info("got deployment: $revertTo")
+            val active = client.jobs.getLastDeploymentIfHealthy(validJob.id)
+            logger.info("getLastDeploymentIfHealthy with zero waitTime returns $active")
+        }
     }
 }

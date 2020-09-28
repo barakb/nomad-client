@@ -556,18 +556,18 @@ data class RescheduleEvent(
 )
 
 data class Deployment(
-        @SerializedName("ID") val id: String? = null,
-        @SerializedName("Namespace") val namespace: String? = null,
-        @SerializedName("JobID") val jobId: String? = null,
-        @SerializedName("JobVersion") val jobVersion: BigInteger? = null,
-        @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger? = null,
-        @SerializedName("JobSpecModifyIndex") val jobSpecModifyIndex: BigInteger? = null,
-        @SerializedName("JobCreateIndex") val jobCreateIndex: BigInteger? = null,
+        @SerializedName("ID") val id: String,
+        @SerializedName("Namespace") val namespace: String,
+        @SerializedName("JobID") val jobId: String,
+        @SerializedName("JobVersion") val jobVersion: BigInteger,
+        @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger,
+        @SerializedName("JobSpecModifyIndex") val jobSpecModifyIndex: BigInteger,
+        @SerializedName("JobCreateIndex") val jobCreateIndex: BigInteger,
         @SerializedName("TaskGroups") val taskGroups: Map<String, DeploymentState> = emptyMap(),
         @SerializedName("Status") val status: String,
         @SerializedName("StatusDescription") val statusDescription: String? = null,
         @SerializedName("CreateIndex") val createIndex: BigInteger,
-        @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null
+        @SerializedName("ModifyIndex") val modifyIndex: BigInteger
 )
 
 data class DeploymentState(
