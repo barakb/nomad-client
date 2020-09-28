@@ -18,7 +18,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.1-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     gradlePluginPortal()
@@ -83,8 +83,8 @@ val pomDesc = "A Kotlin Nomad client"
 val githubRepo = "barakb/nomad-client"
 val githubReadme = "Readme.md"
 
-val pomLicenseName = "Apache2"
-val pomLicenseUrl = "http://www.apache.org/licenses/"
+val pomLicenseName = "The Apache Software License, Version 2.0"
+val pomLicenseUrl = "http://www.apache.org/licenses/LICENSE-2.0.txt"
 val pomLicenseDist = "repo"
 
 val pomDeveloperId = "barakb"
@@ -144,11 +144,12 @@ bintray {
         vcsUrl = pomScmUrl
         description = "A Kotlin Nomad client"
         setLabels("kotlin", "Nomad", "REST")
-        setLicenses("Apache2")
+        setLicenses("Apache-2.0")
         desc = description
         websiteUrl = pomUrl
+        vcsUrl = "https://github.com/barakb/nomad-client"
         issueTrackerUrl = pomIssueUrl
-        githubReleaseNotesFile = githubReadme
+//        githubReleaseNotesFile = githubReadme
 
         version.apply {
             name = artifactVersion
