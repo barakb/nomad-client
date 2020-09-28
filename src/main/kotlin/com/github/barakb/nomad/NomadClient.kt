@@ -255,7 +255,7 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         }
 
         @Suppress("unused")
-        suspend fun deployment(jobId: String): Deployment {
+        suspend fun deployment(jobId: String): Deployment? {
             return client.get {
                 path = "job/$jobId/deployment"
             }
@@ -274,7 +274,7 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
 
         private suspend fun getLastDeployment(jobId: String, jobModifyIndex: BigInteger): Deployment? {
             val deployment = deployment(jobId)
-            return if (jobModifyIndex == deployment.jobSpecModifyIndex) deployment else null
+            return if (jobModifyIndex == deployment?.jobSpecModifyIndex) deployment else null
         }
 
         @Suppress("unused")
@@ -339,5 +339,6 @@ data class NomadConfig(
         val region: String?,
         val authToken: String? = null,
 )
+
 
 

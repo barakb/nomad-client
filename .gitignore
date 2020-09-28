@@ -6,3 +6,6 @@ settings.xml
 release.txt
 pom.xml.releaseBackup
 release.properties
+.gradle
+build
+upload.sh

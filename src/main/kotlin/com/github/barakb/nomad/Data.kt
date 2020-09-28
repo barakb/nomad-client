@@ -561,7 +561,7 @@ data class Deployment(
         @SerializedName("JobID") val jobId: String,
         @SerializedName("JobVersion") val jobVersion: BigInteger,
         @SerializedName("JobModifyIndex") val jobModifyIndex: BigInteger,
-        @SerializedName("JobSpecModifyIndex") val jobSpecModifyIndex: BigInteger,
+        @SerializedName("JobSpecModifyIndex") val jobSpecModifyIndex: BigInteger?,
         @SerializedName("JobCreateIndex") val jobCreateIndex: BigInteger,
         @SerializedName("TaskGroups") val taskGroups: Map<String, DeploymentState> = emptyMap(),
         @SerializedName("Status") val status: String,
