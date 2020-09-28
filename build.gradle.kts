@@ -1,3 +1,4 @@
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
@@ -18,7 +19,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     gradlePluginPortal()
@@ -34,7 +35,7 @@ dependencies {
     implementation("org.slf4j:slf4j-api:$slf4jApiVersoion")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoginVersion")
 
-    dokkaHtmlPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10")
+    dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
@@ -95,6 +96,13 @@ val sourcesJar by tasks.creating(Jar::class) {
     from(sourceSets.getByName("main").allSource)
 }
 
+val dokkaJar by tasks.creating(Jar::class) {
+    group = JavaBasePlugin.DOCUMENTATION_GROUP
+    description = "Assembles Kotlin docs with Dokka"
+    archiveClassifier.set("javadoc")
+    from(tasks.dokkaJavadoc)
+}
+
 publishing {
     publications {
         create<MavenPublication>("nomad-client") {
@@ -104,6 +112,7 @@ publishing {
             from(components["java"])
 
             artifact(sourcesJar)
+            artifact(dokkaJar)
 
             pom.withXml {
                 asNode().apply {
