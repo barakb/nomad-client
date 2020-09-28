@@ -5,7 +5,7 @@
 
     <groupId>com.github.barakb</groupId>
     <artifactId>nomad-client</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>nomad-client</name>
 
@@ -22,7 +22,7 @@
         <url>https://github.com/barakb/nomad-client</url>
         <connection>scm:git:https://github.com/barakb/nomad-client.git</connection>
         <developerConnection>scm:git:https://github.com/barakb/nomad-client.git</developerConnection>
-        <tag>nomad-client-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
