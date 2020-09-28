@@ -1,5 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.Date
+import java.util.*
 
 val coroutinesVersion = "1.3.9"
 val jupiterVersion = "5.6.2"
@@ -45,7 +45,7 @@ tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = "1.8"
         @Suppress("SpellCheckingInspection")
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=org.mylibrary.OptInAnnotation"
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
     }
 }
 
