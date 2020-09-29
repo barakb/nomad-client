@@ -19,15 +19,12 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.5"
+version = "1.0.6"
 
 repositories {
     gradlePluginPortal()
     mavenCentral()
     jcenter()
-    maven {
-        url = uri("https://dl.bintray.com/barakb/maven/")
-    }
 }
 
 dependencies {
@@ -52,7 +49,7 @@ tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = "1.8"
         @Suppress("SpellCheckingInspection")
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn"
+        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.RequiresOptIn" + "-Xjsr305=strict"
     }
 }
 
