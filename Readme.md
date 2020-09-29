@@ -53,12 +53,11 @@ Here is the dependency tree:
 [INFO] |  \- commons-codec:commons-codec:jar:1.13:compile
 [INFO] +- com.google.code.gson:gson:jar:2.8.6:compile
 [INFO] +- org.slf4j:slf4j-api:jar:1.7.30:compile
-
 ````
 
-### To consume this project using maven add the following to your pom.xml
+To consume this project using maven add the following to your pom.xml
 
-````Xml
+````xml
  <repositories>
     <repository>
         <snapshots>
@@ -75,7 +74,7 @@ Here is the dependency tree:
 <dependency>
      <groupId>com.github.barakb</groupId>
      <artifactId>nomad-client</artifactId>
-     <version>1.0.3</version>
+     <version>1.0.4</version>
 </dependency>
 ````
 

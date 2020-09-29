@@ -19,7 +19,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.3"
+version = "1.0.4"
 
 repositories {
     gradlePluginPortal()
@@ -165,6 +165,7 @@ bintray {
             desc = pomDesc
             released = Date().toString()
             vcsTag = artifactVersion
+            gpg.sign = true
         }
     }
 }
