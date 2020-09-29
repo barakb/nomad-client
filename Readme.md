@@ -57,41 +57,24 @@ Here is the dependency tree:
 
 To consume this project using maven add the following to your pom.xml
 
-````xml
- <repositories>
-    <repository>
-        <snapshots>
-            <enabled>false</enabled>
-        </snapshots>
-        <id>bintray-barakb-maven</id>
-        <name>bintray</name>
-        <url>https://dl.bintray.com/barakb/maven</url>
-    </repository>
-</repositories>
-````
 
 ````Xml
 <dependency>
      <groupId>com.github.barakb</groupId>
      <artifactId>nomad-client</artifactId>
-     <version>1.0.4</version>
+     <version>1.0.5</version>
 </dependency>
 ````
 
 Or gradle
 
 ````kotlin
-repositories {
-    maven{ 
-       url = uri("https://dl.bintray.com/barakb/maven" )
-    }
-}
 
-implementation("com.github.barakb:nomad-client:1.0.0")
+implementation("com.github.barakb:nomad-client:1.0.5")
 ````
 
 
-#### Usage:
+##### Usage:
 To create a Nomad client Kotlin DSL can be used.
 ```Kotlin
     val client = NomadClient {
@@ -100,6 +83,7 @@ To create a Nomad client Kotlin DSL can be used.
     }
 ```   
 Https address can be used as well.
+The authToken is optional.
 
 The client has public getter for each sub api (jobs, allocations etc), for example this is how a job is submitted.
 

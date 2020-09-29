@@ -19,7 +19,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.4"
+version = "1.0.5"
 
 repositories {
     gradlePluginPortal()
@@ -159,13 +159,17 @@ bintray {
         vcsUrl = "https://github.com/barakb/nomad-client"
         issueTrackerUrl = pomIssueUrl
         githubReleaseNotesFile = githubReadme
-
         version.apply {
             name = artifactVersion
             desc = pomDesc
             released = Date().toString()
             vcsTag = artifactVersion
             gpg.sign = true
+            mavenCentralSync.apply {
+                sync = true
+                user = project.findProperty("sonatypeUser").toString()
+                password = project.findProperty("sonatypePassword").toString()
+            }
         }
     }
 }
