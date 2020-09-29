@@ -10,10 +10,10 @@ I had 3 goals in mind when starting this work.
 4. Small
 
 - Choosing the underlining http client to be Apache HttpAsyncClient **satisfy the first and third requirements**.
-- Extending `CloseableHttpAsyncClient.execute` as a suspend function (in the file CloseableHttpAsyncClientExt.kt)
+- Extending `CloseableHttpAsyncClient.execute` as a suspend function (in the file `CloseableHttpAsyncClientExt.kt`)
   enable easy composition of the result client sequentially and concurrently, hence **satisfy the second requirement**. 
 
-Only 1512 LOC compared to 27818 in the official Java DSK
+Less than 2000 Lines of code.
      
 Currently, the compiled transitive dependencies are:
 

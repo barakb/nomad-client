@@ -25,6 +25,9 @@ repositories {
     gradlePluginPortal()
     mavenCentral()
     jcenter()
+    maven {
+        url = uri("https://dl.bintray.com/barakb/maven/")
+    }
 }
 
 dependencies {
@@ -33,7 +36,10 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:$httpClientVersion")
     implementation("com.google.code.gson:gson:$gsonVersion")
     implementation("org.slf4j:slf4j-api:$slf4jApiVersoion")
+    @Suppress("SpellCheckingInspection")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoginVersion")
+    @Suppress("SpellCheckingInspection")
+    implementation("com.github.barakb:mini-rest-client:1.0.0")
 
     dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10")
 
