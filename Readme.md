@@ -62,7 +62,7 @@ To consume this project using maven add the following to your pom.xml
 <dependency>
      <groupId>com.github.barakb</groupId>
      <artifactId>nomad-client</artifactId>
-     <version>1.0.6</version>
+     <version>1.0.7</version>
 </dependency>
 ````
 
@@ -70,7 +70,7 @@ Or gradle
 
 ````kotlin
 
-implementation("com.github.barakb:nomad-client:1.0.5")
+implementation("com.github.barakb:nomad-client:1.0.7")
 ````
 
 

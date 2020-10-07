@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
@@ -19,7 +21,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.6"
+version = "1.0.7"
 
 repositories {
     gradlePluginPortal()
@@ -33,9 +35,7 @@ dependencies {
     implementation("org.apache.httpcomponents.client5:httpclient5:$httpClientVersion")
     implementation("com.google.code.gson:gson:$gsonVersion")
     implementation("org.slf4j:slf4j-api:$slf4jApiVersoion")
-    @Suppress("SpellCheckingInspection")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoginVersion")
-    @Suppress("SpellCheckingInspection")
     implementation("com.github.barakb:mini-rest-client:1.0.0")
 
     dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10")

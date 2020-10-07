@@ -115,7 +115,6 @@ data class UpdateStrategy(
         @SerializedName("ProgressDeadline") val progressDeadline: Long? = null,
         @SerializedName("AutoRevert") val autoRevert: Boolean? = null,
         @SerializedName("Canary") val canary: Int? = null,
-
         )
 
 @JobDCL
@@ -123,7 +122,9 @@ class GroupBuilder {
     private val tasks: MutableList<Task> = mutableListOf()
     private var restartPolicy: RestartPolicy? = null
     private var reschedulePolicy: ReschedulePolicy? = null
+    private var updateStrategy: UpdateStrategy? = null
     var name: String? = null
+    var count: Int? = null
 
     fun task(init: TaskBuilder.() -> Unit) {
         tasks.add(TaskBuilder().apply(init).build())
@@ -139,23 +140,35 @@ class GroupBuilder {
         reschedulePolicy = ReschedulePolicyBuilder().apply(init).build()
     }
 
+    @Suppress("unused")
+    fun update(init: UpdateStrategyBuilder.() -> Unit) {
+        updateStrategy = UpdateStrategyBuilder().apply(init).build()
+    }
+
+
     internal fun build(): TaskGroup {
         val name = this.name ?: throw IllegalArgumentException("group command is missing $this")
-        return TaskGroup(name = name, tasks = tasks, restartPolicy = restartPolicy)
+        return TaskGroup(
+            name = name,
+            tasks = tasks,
+            restartPolicy = restartPolicy,
+            count = count,
+            update = updateStrategy
+        )
     }
 }
 
 data class TaskGroup(
-        @SerializedName("Name") val name: String,
-        @SerializedName("Tasks") val tasks: List<Task> = listOf(),
-        @SerializedName("Count") val count: Int? = null,
-        @SerializedName("Constraints") val constraints: List<Constraint>? = null,
-        @SerializedName("RestartPolicy") val restartPolicy: RestartPolicy? = null,
-        @SerializedName("ReschedulePolicy") val reschedulePolicy: ReschedulePolicy? = null,
-        @SerializedName("EphemeralDisk") val ephemeralDisk: EphemeralDisk? = null,
-        @SerializedName("Update") val update: UpdateStrategy? = null,
-        @SerializedName("Migrate") val migrate: MigrateStrategy? = null,
-        @SerializedName("Meta") val meta: Map<String, String>? = null,
+    @SerializedName("Name") val name: String,
+    @SerializedName("Tasks") val tasks: List<Task> = listOf(),
+    @SerializedName("Count") var count: Int? = null,
+    @SerializedName("Constraints") val constraints: List<Constraint>? = null,
+    @SerializedName("RestartPolicy") val restartPolicy: RestartPolicy? = null,
+    @SerializedName("ReschedulePolicy") val reschedulePolicy: ReschedulePolicy? = null,
+    @SerializedName("EphemeralDisk") val ephemeralDisk: EphemeralDisk? = null,
+    @SerializedName("Update") val update: UpdateStrategy? = null,
+    @SerializedName("Migrate") val migrate: MigrateStrategy? = null,
+    @SerializedName("Meta") val meta: Map<String, String>? = null,
 )
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -168,6 +181,32 @@ class RestartPolicyBuilder {
 
     fun build(): RestartPolicy {
         return RestartPolicy(interval, attempts, delay, mode)
+    }
+}
+
+@Suppress("MemberVisibilityCanBePrivate")
+@JobDCL
+class UpdateStrategyBuilder {
+    var stagger: Long? = null
+    var maxParallel: Int? = null
+    var healthCheck: String? = null
+    var minHealthyTime: Long? = null
+    var healthyDeadline: Long? = null
+    var progressDeadline: Long? = null
+    var autoRevert: Boolean? = null
+    var canary: Int? = null
+
+    fun build(): UpdateStrategy {
+        return UpdateStrategy(
+            stagger,
+            maxParallel,
+            healthCheck,
+            minHealthyTime,
+            healthyDeadline,
+            progressDeadline,
+            autoRevert,
+            canary
+        )
     }
 }
 
