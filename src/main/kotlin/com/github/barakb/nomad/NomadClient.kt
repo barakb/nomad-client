@@ -47,7 +47,10 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     val deployments = Deployments(httpClient)
 
     @Suppress("unused")
-    val aclToken = AclToken(httpClient)
+    val aclTokens = AclTokens(httpClient)
+
+    @Suppress("unused")
+    val aclPolicies = AclPolicies(httpClient)
 
     override fun close() {
         httpClient.close()
@@ -340,7 +343,7 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         }
     }
 
-    class AclToken(private val client: HttpClient) {
+    class AclTokens(private val client: HttpClient) {
         @Suppress("unused")
         suspend fun bootstrap(): AclToken {
             return client.post {
@@ -386,9 +389,43 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         }
 
         @Suppress("unused")
-        suspend fun delete(id: String): EvaluationResponse {
+        suspend fun delete(id: String) {
             return client.delete {
                 path = "acl/token/$id"
+            }
+        }
+    }
+
+    class AclPolicies(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun list(prefix: String? = null): List<AclPolicy> {
+            return client.get {
+                path = "acl/policies"
+                param("prefix", prefix)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun read(name: String): AclPolicy? {
+            return client.get {
+                path = "acl/policy/$name"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun delete(name: String) {
+            return client.delete {
+                path = "acl/policy/$name"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun create(name: String, description: String? = null, rules: String) {
+            return client.get {
+                path = "acl/policy/$name"
+                param("prefix", name)
+                param("Description", description)
+                param("Rules", rules)
             }
         }
     }

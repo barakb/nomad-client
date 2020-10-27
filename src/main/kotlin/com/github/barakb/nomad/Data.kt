@@ -832,4 +832,11 @@ data class AclToken(
     @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null
 )
 
+data class AclPolicy(
+    @SerializedName("Description") val description: String? = null,
+    @SerializedName("Rules") val rules: String? = null,
+    @SerializedName("CreateIndex") val createIndex: BigInteger? = null,
+    @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null,
+    @SerializedName("Name") val name: String? = null
+)
 
