@@ -13,7 +13,6 @@ I had 3 goals in mind when starting this work.
 - Extending `CloseableHttpAsyncClient.execute` as a suspend function (in the file `CloseableHttpAsyncClientExt.kt`)
   enable easy composition of the result client sequentially and concurrently, hence **satisfy the second requirement**. 
 
-Less than 2000 Lines of code.
      
 Currently, the compiled transitive dependencies are:
 
@@ -61,7 +60,7 @@ To consume this project using maven add the following to your pom.xml
 <dependency>
      <groupId>com.github.barakb</groupId>
      <artifactId>nomad-client</artifactId>
-     <version>1.0.7</version>
+     <version>1.0.8</version>
 </dependency>
 ````
 
@@ -69,7 +68,7 @@ Or gradle
 
 ````kotlin
 
-implementation("com.github.barakb:nomad-client:1.0.7")
+implementation("com.github.barakb:nomad-client:1.0.8")
 ````
 
 
@@ -78,7 +77,8 @@ To create a Nomad client Kotlin DSL can be used.
 ```Kotlin
     val client = NomadClient {
         address = "http://127.0.0.1:4646"
-        authToken = "my-fake-token"
+        // optional authToken
+        authToken = "my-fake-token" 
     }
 ```   
 Https address can be used as well.
@@ -177,4 +177,15 @@ fun main(): Unit = runBlocking {
 }
 ````
 
+The following API are implemented
+- jobs
+- allocations
+- nodes
+- evaluations
+- deployments
+- aclTokens
+- aclPolicies
+- agent
+- operator
+- search
 

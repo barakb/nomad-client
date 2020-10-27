@@ -59,6 +59,12 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     @Suppress("unused")
     val client = Client(httpClient)
 
+    @Suppress("unused")
+    val operator = Operator(httpClient)
+
+    @Suppress("unused")
+    val search = Search(httpClient)
+
     override fun close() {
         httpClient.close()
     }
@@ -531,6 +537,34 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
 
     }
 
+    class Operator(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun configuration(stale: String? = null): RaftConfiguration {
+            return client.get {
+                path = "operator/raft/configuration"
+                param("stale", stale)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun removePeer(address: String? = null, id: String? = null): JsonObject {
+            return client.delete {
+                path = "operator/raft/peer"
+                param("address", address)
+                param("id", id)
+            }
+        }
+    }
+
+    class Search(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun search(prefix: String, context: String): SearchResponse {
+            return client.post {
+                path = "operator/raft/configuration"
+                body = hashMapOf(("Prefix" to prefix), ("Context" to context))
+            }
+        }
+    }
 }
 
 @DslMarker

@@ -957,3 +957,21 @@ data class AllocFileInfo(
     @SerializedName("ModTime") val modTime: Date? = null
 )
 
+data class RaftConfiguration(
+    @SerializedName("Index") val index: BigInteger? = null,
+    @SerializedName("Servers") val servers: List<RaftServer> = listOf()
+)
+
+data class RaftServer(
+    @SerializedName("Leader") val leader: Boolean = false,
+    @SerializedName("Voter") val voter: Boolean = false,
+    @SerializedName("RaftProtocol") val raftProtocol: String? = null,
+    @SerializedName("Address") val address: String? = null,
+    @SerializedName("ID") val id: String? = null,
+    @SerializedName("Node") val node: String? = null
+)
+
+data class SearchResponse(
+    @SerializedName("Matches") val matches: List<String> = listOf(),
+    @SerializedName("Truncations") val truncations: List<String> = listOf()
+)
