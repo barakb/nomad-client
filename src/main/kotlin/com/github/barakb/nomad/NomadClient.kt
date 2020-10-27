@@ -2,6 +2,7 @@ package com.github.barakb.nomad
 
 import com.github.barakb.http.HttpClient
 import com.github.barakb.http.HttpConfigBuilder
+import com.google.gson.JsonObject
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import org.apache.hc.client5.http.config.RequestConfig
@@ -51,6 +52,9 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
 
     @Suppress("unused")
     val aclPolicies = AclPolicies(httpClient)
+
+    @Suppress("unused")
+    val agent = Agent(httpClient)
 
     override fun close() {
         httpClient.close()
@@ -426,6 +430,73 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
                 param("prefix", name)
                 param("Description", description)
                 param("Rules", rules)
+            }
+        }
+    }
+
+    class Agent(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun members(): ServerMembers {
+            return client.get {
+                path = "agent/members"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun servers(): List<String> {
+            return client.get {
+                path = "agent/servers"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun servers(vararg address: String) {
+            return client.post {
+                path = "agent/servers"
+                address.forEach {
+                    param("address", it)
+                }
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun self(): AgentSelf {
+            return client.post {
+                path = "agent/self"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun join(vararg address: String): JsonObject {
+            return client.post {
+                path = "agent/join"
+                address.forEach {
+                    param("address", it)
+                }
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun leave(node: String): JsonObject {
+            return client.post {
+                path = "agent/force-leave"
+                param("node", node)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun health(): AgentHealthResponse {
+            return client.get {
+                path = "agent/health"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun host(serverId: String?, nodeId: String?): JsonObject {
+            return client.get {
+                path = "agent/host"
+                param("server_id", serverId)
+                param("node_id", nodeId)
             }
         }
     }

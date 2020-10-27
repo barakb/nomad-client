@@ -840,3 +840,39 @@ data class AclPolicy(
     @SerializedName("Name") val name: String? = null
 )
 
+data class ServerMembers(
+    @SerializedName("ServerName") val serverName: String? = null,
+    @SerializedName("ServerRegion") val serverRegion: String? = null,
+    @SerializedName("ServerDC") val serverDc: String? = null,
+    @SerializedName("Members") val members: List<AgentMember> = listOf()
+)
+
+data class AgentMember(
+    @SerializedName("Name") val name: String? = null,
+    @SerializedName("Port") val port: Int? = null,
+    @SerializedName("Addr") val addr: String? = null,
+    @SerializedName("Tags") val tags: List<String> = listOf(),
+    @SerializedName("Status") val status: String? = null,
+    @SerializedName("ProtocolMin") val protocolMin: Byte? = null,
+    @SerializedName("ProtocolMax") val protocolMax: Byte? = null,
+    @SerializedName("ProtocolCur") val protocolCur: Byte? = null,
+    @SerializedName("DelegateMin") val delegateMin: Byte? = null,
+    @SerializedName("DelegateMax") val delegateMax: Byte? = null,
+    @SerializedName("DelegateCur") val delegateCur: Byte? = null
+)
+
+data class AgentSelf(
+    @SerializedName("config") val config: List<String> = listOf(),
+    @SerializedName("member") val member: AgentMember? = null,
+    @SerializedName("stats") val stats: List<String> = listOf()
+)
+
+data class AgentHealthResponse(
+    @SerializedName("client") val client: AgentHealth? = null, @SerializedName("server") val server: AgentHealth? = null
+)
+
+data class AgentHealth(
+    @SerializedName("ok") val ok: Boolean = false, @SerializedName("message") val message: String? = null
+)
+
+
