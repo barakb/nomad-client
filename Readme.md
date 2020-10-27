@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/barakb/nomad-client.svg?branch=master)](https://travis-ci.org/barakb/nomad-client)
-
+[![Download](https://api.bintray.com/packages/barakb/maven/nomad-client/images/download.svg) ](https://bintray.com/barakb/maven/nomad-client/_latestVersion)
 ### A Kotlin Nomad client
 
 I had 3 goals in mind when starting this work.
