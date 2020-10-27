@@ -875,4 +875,85 @@ data class AgentHealth(
     @SerializedName("ok") val ok: Boolean = false, @SerializedName("message") val message: String? = null
 )
 
+data class HostStats(
+    @SerializedName("Memory") val memory: HostMemoryStats? = null,
+    @SerializedName("CPU") val cpu: List<HostCpuStats> = listOf(),
+    @SerializedName("DiskStats") val diskStats: List<HostDiskStats> = listOf(),
+    @SerializedName("DeviceStats") val deviceStats: List<DeviceGroupStats> = listOf(),
+    @SerializedName("Uptime") val uptime: BigInteger? = null,
+    @SerializedName("CPUTicksConsumed") val cpuTicksConsumed: Double? = null
+)
+
+data class HostMemoryStats(
+    @SerializedName("Total") val total: BigInteger? = null,
+    @SerializedName("Available") val available: BigInteger? = null,
+    @SerializedName("Used") val used: BigInteger? = null,
+    @SerializedName("Free") val free: BigInteger? = null
+)
+
+data class HostCpuStats(
+    @SerializedName("CPU") val cpu: String? = null,
+    @SerializedName("User") val user: Double? = null,
+    @SerializedName("System") val system: Double? = null,
+    @SerializedName("Idle") val idle: Double? = null
+)
+
+data class HostDiskStats(
+    @SerializedName("Size") val size: BigInteger? = null,
+    @SerializedName("Device") val device: String? = null,
+    @SerializedName("Mountpoint") val mountpoint: String? = null,
+    @SerializedName("Used") val used: BigInteger? = null,
+    @SerializedName("Available") val available: BigInteger? = null,
+    @SerializedName("UsedPercent") val usedPercent: Double? = null,
+    @SerializedName("InodesUsedPercent") val inodesUsedPercent: Double? = null
+)
+
+data class DeviceGroupStats(
+    @SerializedName("Vendor") val vendor: String? = null,
+    @SerializedName("InstanceStats") val instanceStats: List<String> = listOf(),
+    @SerializedName("Name") val name: String? = null,
+    @SerializedName("Type") val type: String? = null
+)
+
+data class AllocResourceUsage(
+    @SerializedName("ResourceUsage") val resourceUsage: ResourceUsage? = null,
+    @SerializedName("Tasks") val tasks: List<String> = listOf(),
+    @SerializedName("Timestamp") val timestamp: Long? = null
+)
+
+data class ResourceUsage(
+    @SerializedName("MemoryStats") val memoryStats: MemoryStats? = null,
+    @SerializedName("CpuStats") val cpuStats: CpuStats? = null,
+    @SerializedName("DeviceStats") val deviceStats: List<DeviceGroupStats> = listOf()
+)
+
+data class MemoryStats(
+    @SerializedName("Cache") val cache: BigInteger? = null,
+    @SerializedName("RSS") val rss: BigInteger? = null,
+    @SerializedName("Swap") val swap: BigInteger? = null,
+    @SerializedName("Usage") val usage: BigInteger? = null,
+    @SerializedName("MaxUsage") val maxUsage: BigInteger? = null,
+    @SerializedName("KernelUsage") val kernelUsage: BigInteger? = null,
+    @SerializedName("KernelMaxUsage") val kernelMaxUsage: BigInteger? = null,
+    @SerializedName("Measured") val measured: List<String> = listOf()
+)
+
+data class CpuStats(
+    @SerializedName("SystemMode") val systemMode: Double? = null,
+    @SerializedName("UserMode") val userMode: Double? = null,
+    @SerializedName("TotalTicks") val totalTicks: Double? = null,
+    @SerializedName("ThrottledPeriods") val throttledPeriods: BigInteger? = null,
+    @SerializedName("ThrottledTime") val throttledTime: BigInteger? = null,
+    @SerializedName("Percent") val percent: Double? = null,
+    @SerializedName("Measured") val measured: List<String> = listOf()
+)
+
+data class AllocFileInfo(
+    @SerializedName("Name") val name: String? = null,
+    @SerializedName("Size") val size: Long? = null,
+    @SerializedName("ContentType") val contentType: String? = null,
+    @SerializedName("IsDir") val isDir: Boolean = false,
+    @SerializedName("FileMode") val fileMode: String? = null,
+    @SerializedName("ModTime") val modTime: Date? = null
+)
 

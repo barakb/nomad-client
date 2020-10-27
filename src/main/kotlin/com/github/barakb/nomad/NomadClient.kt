@@ -56,6 +56,9 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     @Suppress("unused")
     val agent = Agent(httpClient)
 
+    @Suppress("unused")
+    val client = Client(httpClient)
+
     override fun close() {
         httpClient.close()
     }
@@ -500,6 +503,34 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
             }
         }
     }
+
+
+    class Client(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun stats(nodeId: String?): HostStats {
+            return client.get {
+                path = "client/stats"
+                param("node_id", nodeId)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun allocation(allocId: String): AllocResourceUsage {
+            return client.get {
+                path = "/client/allocation/$allocId/stats"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun listFiles(allocId: String, root: String? = null): AllocFileInfo {
+            return client.get {
+                path = "/client/allocation/fs/ls/$allocId"
+                param("path", root)
+            }
+        }
+
+    }
+
 }
 
 @DslMarker
