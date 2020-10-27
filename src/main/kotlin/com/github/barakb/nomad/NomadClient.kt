@@ -46,42 +46,49 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     @Suppress("unused")
     val deployments = Deployments(httpClient)
 
+    @Suppress("unused")
+    val aclToken = AclToken(httpClient)
+
     override fun close() {
         httpClient.close()
     }
 
     private fun createHttpClient(config: NomadConfig): HttpClient {
         val connectionManager = PoolingAsyncClientConnectionManagerBuilder.create()
-                .setTlsStrategy(ClientTlsStrategyBuilder.create()
-                        .setSslContext(SSLContexts.createSystemDefault())
-                        .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
-                        .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
-                        .setSslContext(SSLContextBuilder().loadTrustMaterial(TrustSelfSignedStrategy.INSTANCE).build())
-                        .build())
-                .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
-                .setConnPoolPolicy(PoolReusePolicy.LIFO)
-                .setConnectionTimeToLive(TimeValue.ofMinutes(1L))
-                .build()
+            .setTlsStrategy(
+                ClientTlsStrategyBuilder.create()
+                    .setSslContext(SSLContexts.createSystemDefault())
+                    .setTlsVersions(TLS.V_1_3, TLS.V_1_2)
+                    .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                    .setSslContext(SSLContextBuilder().loadTrustMaterial(TrustSelfSignedStrategy.INSTANCE).build())
+                    .build()
+            )
+            .setPoolConcurrencyPolicy(PoolConcurrencyPolicy.STRICT)
+            .setConnPoolPolicy(PoolReusePolicy.LIFO)
+            .setConnectionTimeToLive(TimeValue.ofMinutes(1L))
+            .build()
 
         val httpClientBuilder = HttpConfigBuilder()
-                .apply {
-                    defaultRequest {
-                        url = if (config.address.endsWith("/")) "${config.address}v1/" else "${config.address}/v1/"
-                        config.authToken?.let { header("X-Nomad-Token", it) }
-                        param("region", config.region)
-                        header("Content-Type", "application/json")
-                    }
-                }.apply {
-                    client {
-                        setConnectionManager(connectionManager)
-                        setDefaultRequestConfig(RequestConfig.custom()
-                                .setConnectTimeout(Timeout.ofSeconds(5))
-                                .setResponseTimeout(Timeout.ofSeconds(5))
-                                .setCookieSpec(StandardCookieSpec.STRICT)
-                                .build())
-                        setVersionPolicy(HttpVersionPolicy.NEGOTIATE)
-                    }
+            .apply {
+                defaultRequest {
+                    url = if (config.address.endsWith("/")) "${config.address}v1/" else "${config.address}/v1/"
+                    config.authToken?.let { header("X-Nomad-Token", it) }
+                    param("region", config.region)
+                    header("Content-Type", "application/json")
                 }
+            }.apply {
+                client {
+                    setConnectionManager(connectionManager)
+                    setDefaultRequestConfig(
+                        RequestConfig.custom()
+                            .setConnectTimeout(Timeout.ofSeconds(5))
+                            .setResponseTimeout(Timeout.ofSeconds(5))
+                            .setCookieSpec(StandardCookieSpec.STRICT)
+                            .build()
+                    )
+                    setVersionPolicy(HttpVersionPolicy.NEGOTIATE)
+                }
+            }
         return HttpClient(httpClientBuilder)
     }
 
@@ -187,18 +194,24 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
             return client.delete {
                 path = "job/$jobId"
                 param("purge", purge)
-
             }
         }
 
         @Suppress("unused")
-        suspend fun update(job: Job, enforceIndex: Boolean? = null, jobModifyIndex: Int = 0, policyOverride: Boolean = false): EvaluationResponse {
+        suspend fun update(
+            job: Job,
+            enforceIndex: Boolean? = null,
+            jobModifyIndex: Int = 0,
+            policyOverride: Boolean = false
+        ): EvaluationResponse {
             return client.post {
                 path = "job/${job.id}"
-                body = hashMapOf(("Job" to job),
-                        ("EnforceIndex" to enforceIndex),
-                        ("JobModifyIndex" to jobModifyIndex),
-                        ("PolicyOverride" to policyOverride))
+                body = hashMapOf(
+                    ("Job" to job),
+                    ("EnforceIndex" to enforceIndex),
+                    ("JobModifyIndex" to jobModifyIndex),
+                    ("PolicyOverride" to policyOverride)
+                )
             }
         }
 
@@ -226,7 +239,12 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         }
 
         @Suppress("unused")
-        suspend fun allocations(jobId: String, all: Boolean? = null, index: BigInteger? = null, wait: String? = null): List<Allocation> {
+        suspend fun allocations(
+            jobId: String,
+            all: Boolean? = null,
+            index: BigInteger? = null,
+            wait: String? = null
+        ): List<Allocation> {
             return client.get {
                 path = "job/$jobId/allocations"
                 param("all", all)
@@ -245,7 +263,12 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         }
 
         @Suppress("unused")
-        suspend fun deployments(jobId: String, all: Boolean? = null, index: BigInteger? = null, wait: String? = null): List<Deployment> {
+        suspend fun deployments(
+            jobId: String,
+            all: Boolean? = null,
+            index: BigInteger? = null,
+            wait: String? = null
+        ): List<Deployment> {
             return client.get {
                 path = "job/$jobId/deployments"
                 param("all", all)
@@ -316,6 +339,59 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
             }
         }
     }
+
+    class AclToken(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun bootstrap(): AclToken {
+            return client.post {
+                path = "acl/bootstrap"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun list(): List<AclToken> {
+            return client.get {
+                path = "acl/tokens"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun create(
+            type: String = "management",
+            name: String? = null,
+            policies: List<String> = listOf(),
+            global: Boolean? = null
+        ): AclToken {
+            return client.post {
+                path = "acl/token"
+                param("Name", name)
+                param("Type", type)
+                param("Policies", policies)
+                param("Global", global)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun read(id: String): AclToken? {
+            return client.get {
+                path = "acl/token/$id"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun self(): AclToken? {
+            return client.get {
+                path = "acl/token/self"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun delete(id: String): EvaluationResponse {
+            return client.delete {
+                path = "acl/token/$id"
+            }
+        }
+    }
 }
 
 @DslMarker
@@ -335,9 +411,9 @@ class NomadConfigBuilder {
 }
 
 data class NomadConfig(
-        var address: String,
-        val region: String?,
-        val authToken: String? = null,
+    var address: String,
+    val region: String?,
+    val authToken: String? = null,
 )
 
 

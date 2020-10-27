@@ -18,8 +18,7 @@ Less than 2000 Lines of code.
 Currently, the compiled transitive dependencies are:
 
 ````bash
-
-INFO]    ch.qos.logback:logback-classic:jar:1.2.3:compile
+[INFO]    ch.qos.logback:logback-classic:jar:1.2.3:compile
 [INFO]    org.apache.httpcomponents.client5:httpclient5:jar:5.0.1:compile
 [INFO]    org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:jar:1.3.9:compile
 [INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:1.4.10:compile
