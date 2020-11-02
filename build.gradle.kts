@@ -84,7 +84,6 @@ val pomScmUrl = "https://github.com/barakb/nomad-client"
 val pomIssueUrl = "https://github.com/barakb/nomad-client/issues"
 val pomDesc = "A Kotlin Nomad client"
 
-val githubRepo = "barakb/nomad-client"
 val githubReadme = "Readme.md"
 
 val pomLicenseName = "The Apache Software License, Version 2.0"
@@ -152,14 +151,13 @@ bintray {
         repo = "maven"
         name = artifactName
         userOrg = "barakb"
-        githubRepo = githubRepo
+        githubRepo = "barakb/nomad-client"
         vcsUrl = pomScmUrl
         description = "A Kotlin Nomad client"
         setLabels("kotlin", "Nomad", "REST")
         setLicenses("Apache-2.0")
         desc = description
         websiteUrl = pomUrl
-        vcsUrl = "https://github.com/barakb/nomad-client"
         issueTrackerUrl = pomIssueUrl
         githubReleaseNotesFile = githubReadme
         version.apply {
