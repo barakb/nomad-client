@@ -117,6 +117,7 @@ data class UpdateStrategy(
     @SerializedName("Canary") val canary: Int? = null,
 )
 
+@Suppress("MemberVisibilityCanBePrivate")
 @JobDCL
 class GroupBuilder {
     private val tasks: MutableList<Task> = mutableListOf()
@@ -456,6 +457,7 @@ data class ConfigJavaExec(
     @SerializedName("jvm_options") val jvmOptions: List<String>? = null,
 )
 
+@Suppress("MemberVisibilityCanBePrivate")
 @JobDCL
 class ConfigDockerExecBuilder {
     var image: String? = null
@@ -473,6 +475,8 @@ class ConfigDockerExecBuilder {
     var hostname: String? = null
     var interactive: Boolean? = null
     var sysctl: Map<String, String>? = null
+
+    @Suppress("SpellCheckingInspection")
     var ulimit: Map<String, String>? = null
     var privileged: Boolean? = null
     var ipcMode: String? = null
@@ -1024,7 +1028,7 @@ data class ServerMembers(
 data class AgentMember(
     @SerializedName("Name") val name: String? = null,
     @SerializedName("Port") val port: Int? = null,
-    @SerializedName("Addr") val addr: String? = null,
+    @Suppress("SpellCheckingInspection") @SerializedName("Addr") val addr: String? = null,
     @SerializedName("Tags") val tags: List<String> = listOf(),
     @SerializedName("Status") val status: String? = null,
     @SerializedName("ProtocolMin") val protocolMin: Byte? = null,
@@ -1075,7 +1079,7 @@ data class HostCpuStats(
 data class HostDiskStats(
     @SerializedName("Size") val size: BigInteger? = null,
     @SerializedName("Device") val device: String? = null,
-    @SerializedName("Mountpoint") val mountpoint: String? = null,
+    @Suppress("SpellCheckingInspection") @SerializedName("Mountpoint") val mountpoint: String? = null,
     @SerializedName("Used") val used: BigInteger? = null,
     @SerializedName("Available") val available: BigInteger? = null,
     @SerializedName("UsedPercent") val usedPercent: Double? = null,
