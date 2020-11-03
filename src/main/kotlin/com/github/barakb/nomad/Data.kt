@@ -260,6 +260,12 @@ class TaskBuilder {
 
     }
 
+    @Suppress("unused", "FunctionName")
+    fun docker_exec(init: ConfigDockerExecBuilder.() -> Unit) {
+        config = ConfigDockerExecBuilder().apply(init).build()
+        driver = "docker_exec"
+    }
+
     @Suppress("unused")
     fun resource(init: ResourceBuilder.() -> Unit) {
         resources = ResourceBuilder().apply(init).build()
@@ -448,6 +454,173 @@ class ConfigJavaExecBuilder {
 data class ConfigJavaExec(
     @SerializedName("jar_path") val jarPath: String? = null,
     @SerializedName("jvm_options") val jvmOptions: List<String>? = null,
+)
+
+@JobDCL
+class ConfigDockerExecBuilder {
+    var image: String? = null
+    var imagePullTimeout: String? = null
+    var args: List<String>? = null
+    var auth: Auth? = null
+    var authSoftFail: Boolean? = null
+    var command: String? = null
+    var dnsSearchDomains: List<String>? = null
+    var dnsOptions: List<String>? = null
+    var dnsServers: List<String>? = null
+    var entrypoint: List<String>? = null
+    var extraHosts: List<String>? = null
+    var forcePull: Boolean? = null
+    var hostname: String? = null
+    var interactive: Boolean? = null
+    var sysctl: Map<String, String>? = null
+    var ulimit: Map<String, String>? = null
+    var privileged: Boolean? = null
+    var ipcMode: String? = null
+    var ipv4Address: String? = null
+    var ipv6Address: String? = null
+    var labels: Map<String, String>? = null
+    var load: String? = null
+    var logging: Map<String, Any>? = null
+    var macAddress: String? = null
+    var memoryHardLimit: String? = null
+    var networkAliases: List<String>? = null
+    var networkMode: String? = null
+    var pidMode: String? = null
+    var ports: List<String>? = null
+    var securityOpt: List<String>? = null
+    var shmSize: String? = null
+    var storageOpt: Map<String, String>? = null
+    var tty: Boolean? = null
+    var utsMode: String? = null
+    var volumes: List<String>? = null
+    var volumeDriver: String? = null
+    var workDir: String? = null
+    var mounts: List<VolumeMount>? = null
+    var devices: List<Map<String, String>>? = null
+    var capAdd: List<String>? = null
+    var capDrop: List<String>? = null
+    var cpuHardLimit: Boolean? = null
+    var cpuCfsPeriod: Long? = null
+    var advertiseIpv6Address: Boolean? = null
+    var readonlyRootfs: Boolean? = null
+    var runtime: String? = null
+    internal fun build(): ConfigDockerExec {
+        val img = image ?: throw java.lang.IllegalArgumentException("DockerExec: image can't be null")
+        return ConfigDockerExec(
+            img,
+            imagePullTimeout,
+            args,
+            auth,
+            authSoftFail,
+            command,
+            dnsSearchDomains,
+            dnsOptions,
+            dnsServers,
+            entrypoint,
+            extraHosts,
+            forcePull,
+            hostname,
+            interactive,
+            sysctl,
+            ulimit,
+            privileged,
+            ipcMode,
+            ipv4Address,
+            ipv6Address,
+            labels,
+            load,
+            logging,
+            macAddress,
+            memoryHardLimit,
+            networkAliases,
+            networkMode,
+            pidMode,
+            ports,
+            securityOpt,
+            shmSize,
+            storageOpt,
+            tty,
+            utsMode,
+            volumes,
+            volumeDriver,
+            workDir,
+            mounts,
+            devices,
+            capAdd,
+            capDrop,
+            cpuHardLimit,
+            cpuCfsPeriod,
+            advertiseIpv6Address,
+            readonlyRootfs,
+            runtime
+        )
+    }
+}
+
+data class ConfigDockerExec(
+    @SerializedName("image") val image: String,
+    @SerializedName("image_pull_timeout") val imagePullTimeout: String? = null,
+    @SerializedName("args") val args: List<String>? = null,
+    @SerializedName("auth") val auth: Auth? = null,
+    @SerializedName("auth_soft_fail") val authSoftFail: Boolean? = null,
+    @SerializedName("command") val command: String? = null,
+    @SerializedName("dns_search_domains") val dnsSearchDomains: List<String>? = null,
+    @SerializedName("dns_options") val dnsOptions: List<String>? = null,
+    @SerializedName("dns_servers") val dnsServers: List<String>? = null,
+    @SerializedName("entrypoint") val entrypoint: List<String>? = null,
+    @SerializedName("extra_hosts") val extraHosts: List<String>? = null,
+    @SerializedName("force_pull") val forcePull: Boolean? = null,
+    @SerializedName("hostname") val hostname: String? = null,
+    @SerializedName("interactive") val interactive: Boolean? = null,
+    @SerializedName("sysctl") val sysctl: Map<String, String>? = null,
+    @Suppress("SpellCheckingInspection") @SerializedName("ulimit") val ulimit: Map<String, String>? = null,
+    @SerializedName("privileged") val privileged: Boolean? = null,
+    @SerializedName("ipc_mode") val ipcMode: String? = null,
+    @SerializedName("ipv4_address") val ipv4Address: String? = null,
+    @SerializedName("ipv6_address") val ipv6Address: String? = null,
+    @SerializedName("labels") val labels: Map<String, String>? = null,
+    @SerializedName("load") val load: String? = null,
+    @SerializedName("logging") val logging: Map<String, Any>? = null,
+    @SerializedName("mac_address") val macAddress: String? = null,
+    @SerializedName("memory_hard_limit") val memoryHardLimit: String? = null,
+    @SerializedName("network_aliases") val networkAliases: List<String>? = null,
+    @SerializedName("network_mode") val networkMode: String? = null,
+    @SerializedName("pid_mode") val pidMode: String? = null,
+    @SerializedName("ports") val ports: List<String>? = null,
+    @SerializedName("security_opt") val securityOpt: List<String>? = null,
+    @SerializedName("shm_size") val shmSize: String? = null,
+    @SerializedName("storage_opt") val storageOpt: Map<String, String>? = null,
+    @SerializedName("tty") val tty: Boolean? = null,
+    @SerializedName("uts_mode") val utsMode: String? = null,
+    @SerializedName("volumes") val volumes: List<String>? = null,
+    @SerializedName("volume_driver") val volumeDriver: String? = null,
+    @SerializedName("work_dir") val workDir: String? = null,
+    @SerializedName("mounts") val mounts: List<VolumeMount>? = null,
+    @SerializedName("devices") val devices: List<Map<String, String>>? = null,
+    @SerializedName("cap_add") val capAdd: List<String>? = null,
+    @SerializedName("cap_drop") val capDrop: List<String>? = null,
+    @SerializedName("cpu_hard_limit") val cpuHardLimit: Boolean? = null,
+    @SerializedName("cpu_cfs_period") val cpuCfsPeriod: Long? = null,
+    @SerializedName("advertise_ipv6_address") val advertiseIpv6Address: Boolean? = null,
+    @SerializedName("readonly_rootfs") val readonlyRootfs: Boolean? = null,
+    @SerializedName("runtime") val runtime: String? = null,
+
+    )
+
+data class Auth(
+    @SerializedName("username") val username: String? = null,
+    @SerializedName("password") val password: String? = null,
+    @SerializedName("email") val email: String? = null,
+    @SerializedName("server_address") val serverAddress: String? = null,
+    @SerializedName("config") val config: String? = null,
+    @SerializedName("helper") val helper: String? = null,
+)
+
+data class VolumeMount(
+    @SerializedName("PropagationMode") val propagationMode: String? = null,
+    @SerializedName("Volume") val volume: String? = null,
+    @SerializedName("Destination") val destination: String? = null,
+    @SerializedName("ReadOnly") val readOnly: Boolean = false
 )
 
 @JobDCL
@@ -665,7 +838,8 @@ data class NetworkResource(
 
 data class Port(
     @SerializedName("Label") val label: String? = null,
-    @SerializedName("Value") val value: Long = 0,
+    @SerializedName("Value") val value: Int = 0,
+    @SerializedName("To") val to: Int = 0,
 )
 
 data class DrainStrategy(
