@@ -633,14 +633,67 @@ class ResourceBuilder {
     var cpu: Int? = null
 
     @Suppress("MemberVisibilityCanBePrivate")
-    var memory: Int? = null
+    var memoryMb: Int? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    private val networks: MutableList<NetworkResource> = mutableListOf()
+
+    @Suppress("unused")
+    fun network(init: NetworkBuilder.() -> Unit) {
+        networks.add(NetworkBuilder().apply(init).build())
+    }
 
     internal fun build(): Resources? {
-        return if (cpu != null || memory != null) {
-            Resources(cpu, memory)
+        return if (cpu != null || memoryMb != null || networks.isNotEmpty()) {
+            Resources(cpu = cpu, memoryMb = memoryMb, networks = networks)
         } else {
             null
         }
+    }
+}
+
+@JobDCL
+class NetworkBuilder {
+    @Suppress("MemberVisibilityCanBePrivate")
+    var device: String? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    var cidr: String? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    var ip: String? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    var mBits: Int? = null
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    private val reservedPorts: MutableList<Port> = mutableListOf()
+
+    @Suppress("MemberVisibilityCanBePrivate")
+    private val dynamicPorts: List<Port>? = null
+
+    fun port(label: String? = null, init: PortBuilder.() -> Unit) {
+        reservedPorts.add(PortBuilder().apply(init).build(label))
+    }
+
+    internal fun build(): NetworkResource {
+        return NetworkResource(device, cidr, ip, mBits, reservedPorts, dynamicPorts)
+    }
+}
+
+class PortBuilder {
+    var static: Int? = null
+    var to: Int? = null
+    internal fun build(label: String?): Port {
+        return Port(label, static, to)
+    }
+}
+
+class PortValueBuilder {
+    var value: Int = 0
+    var to: Int? = null
+    internal fun build(label: String?): Port? {
+        return Port(label, value, to)
     }
 }
 
@@ -823,12 +876,28 @@ data class Node(
     @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null,
 )
 
+
 data class Resources(
     @SerializedName("CPU") val cpu: Int? = null,
     @SerializedName("MemoryMB") val memoryMb: Int? = null,
     @SerializedName("DiskMB") val diskMb: Int? = null,
-    @Suppress("SpellCheckingInspection") @SerializedName("IOPS") val iops: Int? = null,
-    @SerializedName("Networks") val networks: List<NetworkResource>? = null,
+    @SerializedName("Networks") val networks: List<NetworkResource> = listOf(),
+    @SerializedName("Devices") val devices: List<RequestedDevice> = listOf(),
+    @Suppress("SpellCheckingInspection") @SerializedName("IOPS") val iops: Int? = null
+)
+
+data class RequestedDevice(
+    @SerializedName("Count") val count: BigInteger? = null,
+    @SerializedName("Constraints") val constraints: List<Constraint> = listOf(),
+    @SerializedName("Affinities") val affinities: List<Affinity> = listOf(),
+    @SerializedName("Name") val name: String? = null
+)
+
+data class Affinity(
+    @SerializedName("LTarget") val lTarget: String? = null,
+    @SerializedName("RTarget") val rTarget: String? = null,
+    @SerializedName("Operand") val operand: String? = null,
+    @SerializedName("Weight") val weight: Short? = null
 )
 
 data class NetworkResource(
@@ -842,8 +911,8 @@ data class NetworkResource(
 
 data class Port(
     @SerializedName("Label") val label: String? = null,
-    @SerializedName("Value") val value: Int = 0,
-    @SerializedName("To") val to: Int = 0,
+    @SerializedName("Value") val value: Int? = null,
+    @SerializedName("To") val to: Int? = null,
 )
 
 data class DrainStrategy(

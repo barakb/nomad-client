@@ -153,6 +153,42 @@ client.jobs.create{
             }
         }
 ```
+A docker task can executed using the docker_exec DSL
+
+````Kotlin
+fun main(): Unit = runBlocking {
+    NomadClient {
+        address = "http://127.0.0.1:4646"
+        authToken = "my-fake-token"
+    }.use { client ->
+        // https://learn.hashicorp.com/tutorials/nomad/jobs-submit
+        client.jobs.create {
+            id = "my_job_id"
+            name = "my_job"
+            group {
+                name = "example"
+                task {
+                    name = "server"
+                    docker_exec {
+                        image = "hashicorp/http-echo"
+                        args = listOf("-listen", ":5678", "-text", "hello world")
+                    }
+                    resource {
+                        network {
+                            mBits = 10
+                            port("http") {
+                                static = 5678
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+````
+
 There are a few utility functions built around Nomad API, for example calling `client.jobs.getLastDeploymentIfHealthy(validJob.id, 30.seconds)`
 will return the healthy deployment of that last version of this job or null if no such exists, wait is an optional parameter.
 
@@ -176,6 +212,7 @@ fun main(): Unit = runBlocking {
     }
 }
 ````
+
 
 The following API are implemented
 - jobs
