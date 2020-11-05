@@ -681,19 +681,12 @@ class NetworkBuilder {
     }
 }
 
+@Suppress("MemberVisibilityCanBePrivate")
 class PortBuilder {
     var static: Int? = null
     var to: Int? = null
     internal fun build(label: String?): Port {
         return Port(label, static, to)
-    }
-}
-
-class PortValueBuilder {
-    var value: Int = 0
-    var to: Int? = null
-    internal fun build(label: String?): Port? {
-        return Port(label, value, to)
     }
 }
 
@@ -1222,3 +1215,70 @@ data class SearchResponse(
     @SerializedName("Matches") val matches: List<String> = listOf(),
     @SerializedName("Truncations") val truncations: List<String> = listOf()
 )
+
+data class CsiVolume(
+    @SerializedName("ExternalID") val externalId: String? = null,
+    @SerializedName("Namespace") val namespace: String? = null,
+    @SerializedName("Topologies") val topologies: List<CsiTopology> = listOf(),
+    @SerializedName("AccessMode") val accessMode: String? = null,
+    @SerializedName("AttachmentMode") val attachmentMode: String? = null,
+    @SerializedName("MountOptions") val mountOptions: CsiMountOptions? = null,
+    @SerializedName("Secrets") val secrets: List<String> = listOf(),
+    @Suppress("SpellCheckingInspection") @SerializedName("ReadAllocs") val readAllocs: List<String> = listOf(),
+    @Suppress("SpellCheckingInspection") @SerializedName("WriteAllocs") val writeAllocs: List<String> = listOf(),
+    @SerializedName("Allocations") val allocations: List<AllocationListStub> = listOf(),
+    @Suppress("SpellCheckingInspection") @SerializedName("Schedulable") val schedulable: Boolean = false,
+    @SerializedName("PluginID") val pluginId: String? = null,
+    @SerializedName("Provider") val provider: String? = null,
+    @SerializedName("ProviderVersion") val providerVersion: String? = null,
+    @SerializedName("ControllerRequired") val controllerRequired: Boolean = false,
+    @SerializedName("ControllersHealthy") val controllersHealthy: Int? = null,
+    @SerializedName("ControllersExpected") val controllersExpected: Int? = null,
+    @SerializedName("NodesHealthy") val nodesHealthy: Int? = null,
+    @SerializedName("NodesExpected") val nodesExpected: Int? = null,
+    @SerializedName("ResourceExhausted") val resourceExhausted: Date? = null,
+    @SerializedName("CreateIndex") val createIndex: BigInteger? = null,
+    @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null,
+    @SerializedName("Name") val name: String? = null,
+    @SerializedName("Context") val context: List<String> = listOf(),
+    @SerializedName("ID") val id: String? = null,
+    @SerializedName("Parameters") val parameters: List<String> = listOf()
+)
+
+data class CsiTopology(
+    @SerializedName("Segments") val segments: List<String> = listOf()
+)
+
+data class CsiMountOptions(
+    @SerializedName("FSType") val fsType: String? = null,
+    @SerializedName("MountFlags") val mountFlags: List<String> = listOf()
+)
+
+data class AllocationListStub(
+    @SerializedName("Name") val name: String? = null,
+    @SerializedName("ID") val id: String? = null,
+    @SerializedName("EvalID") val evalId: String? = null,
+    @SerializedName("Namespace") val namespace: String? = null,
+    @SerializedName("NodeID") val nodeId: String? = null,
+    @SerializedName("NodeName") val nodeName: String? = null,
+    @SerializedName("JobID") val jobId: String? = null,
+    @SerializedName("JobType") val jobType: String? = null,
+    @SerializedName("JobVersion") val jobVersion: BigInteger? = null,
+    @SerializedName("TaskGroup") val taskGroup: String? = null,
+    @SerializedName("DesiredStatus") val desiredStatus: String? = null,
+    @SerializedName("DesiredDescription") val desiredDescription: String? = null,
+    @SerializedName("ClientStatus") val clientStatus: String? = null,
+    @SerializedName("ClientDescription") val clientDescription: String? = null,
+    @SerializedName("TaskStates") val taskStates: List<String> = listOf(),
+    @SerializedName("DeploymentStatus") val deploymentStatus: AllocDeploymentStatus? = null,
+    @SerializedName("FollowupEvalID") val followupEvalId: String? = null,
+    @SerializedName("RescheduleTracker") val rescheduleTracker: RescheduleTracker? = null,
+    @SerializedName("PreemptedAllocations") val preemptedAllocations: List<String> = listOf(),
+    @SerializedName("PreemptedByAllocation") val preemptedByAllocation: String? = null,
+    @SerializedName("CreateIndex") val createIndex: BigInteger? = null,
+    @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null,
+    @SerializedName("CreateTime") val createTime: Long? = null,
+    @SerializedName("ModifyTime") val modifyTime: Long? = null
+)
+
+

@@ -60,7 +60,7 @@ To consume this project using maven add the following to your pom.xml
 <dependency>
      <groupId>com.github.barakb</groupId>
      <artifactId>nomad-client</artifactId>
-     <version>1.0.8</version>
+     <version>1.0.9</version>
 </dependency>
 ````
 
@@ -68,7 +68,7 @@ Or gradle
 
 ````kotlin
 
-implementation("com.github.barakb:nomad-client:1.0.8")
+implementation("com.github.barakb:nomad-client:1.0.9")
 ````
 
 
@@ -225,4 +225,5 @@ The following API are implemented
 - agent
 - operator
 - search
+- volume
 

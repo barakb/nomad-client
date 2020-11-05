@@ -65,6 +65,9 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
     @Suppress("unused")
     val search = Search(httpClient)
 
+    @Suppress("unused")
+    val volume = Volume(httpClient)
+
     override fun close() {
         httpClient.close()
     }
@@ -560,8 +563,51 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         @Suppress("unused")
         suspend fun search(prefix: String, context: String): SearchResponse {
             return client.post {
-                path = "operator/raft/configuration"
+                path = "search"
                 body = hashMapOf(("Prefix" to prefix), ("Context" to context))
+            }
+        }
+    }
+
+    class Volume(private val client: HttpClient) {
+        @Suppress("unused")
+        suspend fun list(type: String? = null, nodeId: String? = null, pluginId: String? = null): List<CsiVolume> {
+            return client.get {
+                path = "volumes"
+                param("type", type)
+                param("node_id", nodeId)
+                param("plugin_id", pluginId)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun read(volumeId: String): CsiVolume {
+            return client.get {
+                path = "volume/csi/$volumeId"
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun register(volumeId: String, volumes: List<CsiVolume>): CsiVolume {
+            return client.put {
+                path = "volume/csi/$volumeId"
+                body = mapOf(("Volumes" to volumes))
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun delete(volumeId: String, force: Boolean? = null): CsiVolume {
+            return client.delete {
+                path = "volume/csi/$volumeId"
+                param("force", force)
+            }
+        }
+
+        @Suppress("unused")
+        suspend fun detach(volumeId: String, node: String): CsiVolume {
+            return client.delete {
+                path = "volume/csi/$volumeId/detach"
+                param("node", node)
             }
         }
     }
