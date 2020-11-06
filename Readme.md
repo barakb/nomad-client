@@ -55,6 +55,7 @@ Here is the dependency tree:
 
 To consume this project using maven add the following to your pom.xml
 
+foo boor
 
 ````Xml
 <dependency>

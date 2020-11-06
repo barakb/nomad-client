@@ -526,18 +526,17 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
         @Suppress("unused")
         suspend fun allocation(allocId: String): AllocResourceUsage {
             return client.get {
-                path = "/client/allocation/$allocId/stats"
+                path = "client/allocation/$allocId/stats"
             }
         }
 
         @Suppress("unused")
-        suspend fun listFiles(allocId: String, root: String? = null): AllocFileInfo {
+        suspend fun listFiles(allocId: String, root: String? = null): List<AllocFileInfo> {
             return client.get {
-                path = "/client/allocation/fs/ls/$allocId"
+                path = "client/fs/ls/$allocId"
                 param("path", root)
             }
         }
-
     }
 
     class Operator(private val client: HttpClient) {

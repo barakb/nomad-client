@@ -736,30 +736,68 @@ data class JobChildrenSummary(
 )
 
 data class Allocation(
-    @SerializedName("ID") val id: String? = null,
-    @SerializedName("EvalID") val evalId: String? = null,
-    @SerializedName("Name") val name: String? = null,
+    @SerializedName("Name") val name: String,
+    @SerializedName("Resources") val resources: Resources? = null,
+    @SerializedName("ID") val id: String,
     @SerializedName("Namespace") val namespace: String? = null,
-    @SerializedName("NodeID") val nodeId: String? = null,
-    @SerializedName("NodeName") val nodeName: String? = null,
-    @SerializedName("JobID") val jobId: String? = null,
-    @SerializedName("JobType") val jobType: String? = null,
-    @SerializedName("JobVersion") val jobVersion: BigInteger? = null,
+    @SerializedName("EvalID") val evalId: String,
+    @SerializedName("NodeID") val nodeId: String,
+    @SerializedName("NodeName") val nodeName: String,
+    @SerializedName("JobID") val jobId: String,
+    @SerializedName("Job") val job: Job? = null,
     @SerializedName("TaskGroup") val taskGroup: String? = null,
+    @SerializedName("TaskResources") val taskResources: Map<String, Resources> = mapOf(),
+    @SerializedName("AllocatedResources") val allocatedResources: AllocatedResources? = null,
+    @SerializedName("Services") val services: Map<String, String> = mapOf(),
+    @SerializedName("Metrics") val metrics: AllocationMetric? = null,
     @SerializedName("DesiredStatus") val desiredStatus: String? = null,
     @SerializedName("DesiredDescription") val desiredDescription: String? = null,
+    @SerializedName("DesiredTransition") val desiredTransition: DesiredTransition? = null,
     @SerializedName("ClientStatus") val clientStatus: String? = null,
     @SerializedName("ClientDescription") val clientDescription: String? = null,
-    @SerializedName("TaskStates") val taskStates: Map<String, TaskState> = emptyMap(),
+    @SerializedName("TaskStates") val taskStates: Map<String, TaskState> = mapOf(),
+    @SerializedName("DeploymentID") val deploymentId: String? = null,
     @SerializedName("DeploymentStatus") val deploymentStatus: AllocDeploymentStatus? = null,
     @SerializedName("FollowupEvalID") val followupEvalId: String? = null,
+    @SerializedName("PreviousAllocation") val previousAllocation: String? = null,
+    @SerializedName("NextAllocation") val nextAllocation: String? = null,
     @SerializedName("RescheduleTracker") val rescheduleTracker: RescheduleTracker? = null,
-    @SerializedName("PreemptedAllocations") val preemptedAllocations: List<String>? = null,
+    @SerializedName("PreemptedAllocations") val preemptedAllocations: List<String> = listOf(),
     @SerializedName("PreemptedByAllocation") val preemptedByAllocation: String? = null,
-    @SerializedName("CreateIndex") val createIndex: BigInteger? = null,
-    @SerializedName("ModifyIndex") val modifyIndex: BigInteger? = null,
-    @SerializedName("CreateTime") val createTime: Long = 0,
-    @SerializedName("ModifyTime") val modifyTime: Long = 0
+    @SerializedName("CreateIndex") val createIndex: BigInteger,
+    @SerializedName("ModifyIndex") val modifyIndex: BigInteger,
+    @SerializedName("AllocModifyIndex") val allocModifyIndex: BigInteger,
+    @SerializedName("CreateTime") val createTime: Long? = null,
+    @SerializedName("ModifyTime") val modifyTime: Long? = null
+)
+
+data class DesiredTransition(
+    @SerializedName("Migrate") val migrate: Boolean = false,
+    @SerializedName("Reschedule") val reschedule: Boolean = false
+)
+
+data class AllocatedResources(
+    @SerializedName("Tasks") val tasks: Map<String, AllocatedTaskResources> = mapOf(),
+    @SerializedName("Shared") val shared: AllocatedSharedResources? = null
+)
+
+data class AllocatedTaskResources(
+    @SerializedName("Cpu") val cpu: AllocatedCpuResources? = null,
+    @SerializedName("Memory") val memory: AllocatedMemoryResources? = null,
+    @SerializedName("Networks") val networks: List<NetworkResource> = listOf()
+)
+
+data class AllocatedMemoryResources(
+    @SerializedName("MemoryMB") val memoryMb: Long? = null
+)
+
+data class AllocatedSharedResources(
+    @SerializedName("DiskMB") val diskMb: Long? = null,
+    @SerializedName("Networks") val networks: List<NetworkResource> = listOf()
+)
+
+data class AllocatedCpuResources(
+    @SerializedName("CpuShares") val cpuShares: Long? = null
 )
 
 data class TaskState(
@@ -1189,12 +1227,12 @@ data class CpuStats(
 )
 
 data class AllocFileInfo(
-    @SerializedName("Name") val name: String? = null,
-    @SerializedName("Size") val size: Long? = null,
+    @SerializedName("Name") val name: String,
+    @SerializedName("Size") val size: Long,
     @SerializedName("ContentType") val contentType: String? = null,
-    @SerializedName("IsDir") val isDir: Boolean = false,
-    @SerializedName("FileMode") val fileMode: String? = null,
-    @SerializedName("ModTime") val modTime: Date? = null
+    @SerializedName("IsDir") val isDir: Boolean,
+    @SerializedName("FileMode") val fileMode: String,
+    @SerializedName("ModTime") val modTime: Date
 )
 
 data class RaftConfiguration(

@@ -27,6 +27,7 @@ repositories {
     gradlePluginPortal()
     mavenCentral()
     jcenter()
+    mavenLocal()
 }
 
 dependencies {
@@ -36,7 +37,7 @@ dependencies {
     implementation("com.google.code.gson:gson:$gsonVersion")
     implementation("org.slf4j:slf4j-api:$slf4jApiVersoion")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoginVersion")
-    implementation("com.github.barakb:mini-rest-client:1.0.0")
+    implementation("com.github.barakb:mini-rest-client:1.0.2")
 
     dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10")
 
