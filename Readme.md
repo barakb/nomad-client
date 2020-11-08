@@ -11,10 +11,7 @@ I had 3 goals in mind when starting this work.
 3. Minimum dependencies.
 4. Small
 
-- Choosing the underlining http client to be Apache HttpAsyncClient **satisfy the first and third requirements**.
-- Extending `CloseableHttpAsyncClient.execute` as a suspend function (in the file `CloseableHttpAsyncClientExt.kt`)
-  enable easy composition of the result client sequentially and concurrently, hence **satisfy the second requirement**. 
-
+This project depends on [min-rest-client](https://github.com/barakb/mini-rest-client) that is both small and fully non-blocking rest client using suspendable methods to allow easy composition. 
      
 To consume this project using maven add the following to your pom.xml
 
@@ -101,7 +98,7 @@ client.jobs.create(job)
 You can also create the Job while sending the request to Nomad.
 
 ```Kotlin
-client.jobs.create{
+client.jobs.create {
             id = "foo"
             name = "foo"
             group {
