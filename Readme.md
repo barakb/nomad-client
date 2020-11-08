@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/barakb/nomad-client.svg?branch=master)](https://travis-ci.org/barakb/nomad-client)
 [![Download](https://api.bintray.com/packages/barakb/maven/nomad-client/images/download.svg)](https://bintray.com/barakb/maven/nomad-client/_latestVersion)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.barakb/nomad-client/badge.svg?color=blue)](https://maven-badges.herokuapp.com/maven-central/com.github.barakb/nomad-client)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.barakb/nomad-client.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.github.barakb%22%20AND%20a:%22nomad-client%22)
 [![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 ### A Kotlin Nomad client
 
