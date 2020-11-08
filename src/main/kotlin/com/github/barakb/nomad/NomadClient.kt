@@ -537,6 +537,27 @@ class NomadClient(init: NomadConfigBuilder.() -> Unit) : Closeable {
                 param("path", root)
             }
         }
+
+        // curl  'http://localhost:4646/v1/client/fs/logs/7a6b2d0d-04f5-1dbe-d25e-5fe322addc8c?task=myTask&type=stdout&origin=end'
+        @Suppress("unused")
+        suspend fun streamLog(
+            allocId: String,
+            taskName: String,
+            follow: Boolean? = null,
+            type: String = "stdout",
+            offset: Int? = null,
+            origin: String = "end",
+        ): List<AllocFileInfo> {
+            return client.get {
+                path = "client/fs/ls/$allocId"
+                param("task", taskName)
+                param("follow", follow)
+                param("type", type)
+                param("offset", offset)
+                param("origin", origin)
+                param("plan", false)
+            }
+        }
     }
 
     class Operator(private val client: HttpClient) {
