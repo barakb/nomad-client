@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/barakb/nomad-client.svg?branch=master)](https://travis-ci.org/barakb/nomad-client)
-[![Download](https://api.bintray.com/packages/barakb/maven/nomad-client/images/download.svg) ](https://bintray.com/barakb/maven/nomad-client/_latestVersion)
+[![Download](https://api.bintray.com/packages/barakb/maven/nomad-client/images/download.svg)](https://bintray.com/barakb/maven/nomad-client/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.barakb/nomad-client/badge.svg?color=blue)](https://maven-badges.herokuapp.com/maven-central/com.github.barakb/nomad-client)
+[![GitHub License](https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat)](https://www.apache.org/licenses/LICENSE-2.0)
 ### A Kotlin Nomad client
 
 I had 3 goals in mind when starting this work.
@@ -14,54 +16,13 @@ I had 3 goals in mind when starting this work.
   enable easy composition of the result client sequentially and concurrently, hence **satisfy the second requirement**. 
 
      
-Currently, the compiled transitive dependencies are:
-
-````bash
-[INFO]    ch.qos.logback:logback-classic:jar:1.2.3:compile
-[INFO]    org.apache.httpcomponents.client5:httpclient5:jar:5.0.1:compile
-[INFO]    org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:jar:1.3.9:compile
-[INFO]    org.jetbrains.kotlin:kotlin-stdlib:jar:1.4.10:compile
-[INFO]    org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:1.3.9:compile
-[INFO]    org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.4.10:compile
-[INFO]    org.apache.httpcomponents.core5:httpcore5-h2:jar:5.0.1:compile
-[INFO]    commons-codec:commons-codec:jar:1.13:compile
-[INFO]    com.google.code.gson:gson:jar:2.8.6:compile
-[INFO]    org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.4.10:compile
-[INFO]    org.jetbrains.kotlin:kotlin-reflect:jar:1.4.10:compile
-[INFO]    org.slf4j:slf4j-api:jar:1.7.30:compile
-[INFO]    org.apache.httpcomponents.core5:httpcore5:jar:5.0.1:compile
-[INFO]    io.github.microutils:kotlin-logging:jar:1.11.5:compile
-[INFO]    org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.4.10:compile
-[INFO]    org.jetbrains:annotations:jar:13.0:compile
-
-Here is the dependency tree:
-
-[INFO] +- org.jetbrains.kotlin:kotlin-stdlib-jdk8:jar:1.4.10:compile
-[INFO] |  +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.4.10:compile
-[INFO] |  |  +- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.4.10:compile
-[INFO] |  |  \- org.jetbrains:annotations:jar:13.0:compile
-[INFO] |  \- org.jetbrains.kotlin:kotlin-stdlib-jdk7:jar:1.4.10:compile
-[INFO] +- org.jetbrains.kotlin:kotlin-reflect:jar:1.4.10:compile
-[INFO] +- org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:jar:1.3.9:compile
-[INFO] |  \- org.jetbrains.kotlinx:kotlinx-coroutines-core:jar:1.3.9:compile
-[INFO] +- io.github.microutils:kotlin-logging:jar:1.11.5:compile
-[INFO] +- org.apache.httpcomponents.client5:httpclient5:jar:5.0.1:compile
-[INFO] |  +- org.apache.httpcomponents.core5:httpcore5:jar:5.0.1:compile
-[INFO] |  +- org.apache.httpcomponents.core5:httpcore5-h2:jar:5.0.1:compile
-[INFO] |  \- commons-codec:commons-codec:jar:1.13:compile
-[INFO] +- com.google.code.gson:gson:jar:2.8.6:compile
-[INFO] +- org.slf4j:slf4j-api:jar:1.7.30:compile
-````
-
 To consume this project using maven add the following to your pom.xml
-
-foo boor
 
 ````Xml
 <dependency>
      <groupId>com.github.barakb</groupId>
      <artifactId>nomad-client</artifactId>
-     <version>1.0.9</version>
+     <version>1.0.10</version>
 </dependency>
 ````
 
@@ -69,7 +30,7 @@ Or gradle
 
 ````kotlin
 
-implementation("com.github.barakb:nomad-client:1.0.9")
+implementation("com.github.barakb:nomad-client:1.0.10")
 ````
 
 

@@ -21,7 +21,7 @@ plugins {
     id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.9"
+version = "1.0.10"
 
 repositories {
     gradlePluginPortal()
