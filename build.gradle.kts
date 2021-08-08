@@ -18,15 +18,13 @@ plugins {
     application
     id("com.adarshr.test-logger") version "2.1.0"
     `maven-publish`
-    id("com.jfrog.bintray") version "1.8.4"
 }
 group = "com.github.barakb"
-version = "1.0.10"
+version = "1.0.11"
 
 repositories {
     gradlePluginPortal()
     mavenCentral()
-    jcenter()
     mavenLocal()
 }
 
@@ -107,71 +105,19 @@ val dokkaJar by tasks.creating(Jar::class) {
 }
 
 publishing {
-    publications {
-        create<MavenPublication>("nomad-client") {
-            groupId = artifactGroup
-            artifactId = artifactName
-            version = artifactVersion
-            from(components["java"])
-
-            artifact(sourcesJar)
-            artifact(dokkaJar)
-
-            pom.withXml {
-                asNode().apply {
-                    appendNode("description", pomDesc)
-                    appendNode("name", rootProject.name)
-                    appendNode("url", pomUrl)
-                    appendNode("licenses").appendNode("license").apply {
-                        appendNode("name", pomLicenseName)
-                        appendNode("url", pomLicenseUrl)
-                        appendNode("distribution", pomLicenseDist)
-                    }
-                    appendNode("developers").appendNode("developer").apply {
-                        appendNode("id", pomDeveloperId)
-                        appendNode("name", pomDeveloperName)
-                    }
-                    appendNode("scm").apply {
-                        appendNode("url", pomScmUrl)
-                    }
-                }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/barakb/nomad-client")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
             }
         }
     }
-}
-
-
-bintray {
-    user = project.findProperty("bintrayUser").toString()
-    key = project.findProperty("bintrayKey").toString()
-    publish = true
-
-    setPublications("nomad-client")
-
-    pkg.apply {
-        repo = "maven"
-        name = artifactName
-        userOrg = "barakb"
-        githubRepo = "barakb/nomad-client"
-        vcsUrl = pomScmUrl
-        description = "A Kotlin Nomad client"
-        setLabels("kotlin", "Nomad", "REST")
-        setLicenses("Apache-2.0")
-        desc = description
-        websiteUrl = pomUrl
-        issueTrackerUrl = pomIssueUrl
-        githubReleaseNotesFile = githubReadme
-        version.apply {
-            name = artifactVersion
-            desc = pomDesc
-            released = Date().toString()
-            vcsTag = artifactVersion
-            gpg.sign = true
-            mavenCentralSync.apply {
-                sync = true
-                user = project.findProperty("sonatypeUser").toString()
-                password = project.findProperty("sonatypePassword").toString()
-            }
+    publications {
+        register<MavenPublication>("gpr") {
+            from(components["java"])
         }
     }
 }
