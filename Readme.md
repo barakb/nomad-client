@@ -1,3 +1,4 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=barakb_nomad-client&metric=alert_status)](https://sonarcloud.io/dashboard?id=barakb_nomad-client)
 [![Build Status](https://travis-ci.org/barakb/nomad-client.svg?branch=master)](https://travis-ci.org/barakb/nomad-client)
 [![Download](https://api.bintray.com/packages/barakb/maven/nomad-client/images/download.svg)](https://bintray.com/barakb/maven/nomad-client/_latestVersion)
 [![Maven Central](https://img.shields.io/maven-central/v/com.github.barakb/nomad-client.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.github.barakb%22%20AND%20a:%22nomad-client%22)
