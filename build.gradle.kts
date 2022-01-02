@@ -37,7 +37,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:$kotlinLoginVersion")
     implementation("com.github.barakb:mini-rest-client:1.0.2")
 
-    dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.4.10")
+    dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.6.10")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
