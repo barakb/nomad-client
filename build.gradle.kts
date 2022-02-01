@@ -10,7 +10,7 @@ val logbackVersion = "1.2.3"
 val kotlinLoginVersion = "1.8.3"
 val slf4jApiVersoion = "1.7.30"
 val gsonVersion = "2.8.6"
-val httpClientVersion = "5.0.1"
+val httpClientVersion = "5.1.3"
 
 plugins {
     kotlin("jvm") version "1.4.10"
