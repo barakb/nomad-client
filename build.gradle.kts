@@ -13,7 +13,7 @@ val gsonVersion = "2.8.6"
 val httpClientVersion = "5.1.3"
 
 plugins {
-    kotlin("jvm") version "1.4.10"
+    kotlin("jvm") version "1.6.10"
     id("org.jetbrains.dokka") version "1.4.10"
     application
     id("com.adarshr.test-logger") version "2.1.0"
