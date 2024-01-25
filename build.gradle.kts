@@ -35,7 +35,7 @@ dependencies {
     implementation("com.google.code.gson:gson:$gsonVersion")
     implementation("org.slf4j:slf4j-api:$slf4jApiVersoion")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoginVersion")
-    implementation("com.github.barakb:mini-rest-client:1.0.2")
+    implementation("com.github.barakb:mini-rest-client:1.0.5")
 
     dokkaJavadocPlugin("org.jetbrains.dokka:kotlin-as-java-plugin:1.9.10")
 
