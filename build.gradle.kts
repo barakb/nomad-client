@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
 val coroutinesVersion = "1.3.9"
-val jupiterVersion = "5.8.2"
+val jupiterVersion = "5.10.1"
 val logbackVersion = "1.4.14"
 val kotlinLoginVersion = "2.1.23"
 val slf4jApiVersoion = "1.7.36"
