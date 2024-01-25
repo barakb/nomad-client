@@ -16,7 +16,7 @@ plugins {
     kotlin("jvm") version "1.6.10"
     id("org.jetbrains.dokka") version "1.9.10"
     application
-    id("com.adarshr.test-logger") version "2.1.0"
+    id("com.adarshr.test-logger") version "2.1.1"
     `maven-publish`
 }
 group = "com.github.barakb"
